@@ -59,7 +59,11 @@ def run(cmd, env=None, check=True, quiet=False):
 
 
 def blender(script, *args, check=True):
-    return run([CFG.blender(), '-b', '--factory-startup', '-P', T / script, '--', *args], check=check)
+    r = run([CFG.blender(), '-b', '--factory-startup', '-P', T / script, '--', *args], check=False)
+    if check and (r.returncode or 'Traceback' in r.stdout):    # Blender exits 0 even when its script crashes
+        print(r.stdout[-3000:])
+        stop(f'Blender step {script} failed (above)')
+    return r
 
 
 def py(script, *args, env=None, check=True, stream=False):
@@ -147,6 +151,8 @@ def cmd_doctor(a):
                 print(f'  [!!] only {cr:g} credits: a 3D garment needs about {S4.cost_per_mesh()} per try - top up first')
     line(shutil.which('git'), 'git (for updates)', 'install Git for Windows: https://git-scm.com/download/win')
     line((ROOT / '.git').exists(), 'linked to GitHub for updates', 'python pipeline/garment.py update')
+    line(len(str(ROOT)) <= 60, f'folder path is short enough ({len(str(ROOT))} characters)',
+         'Windows limits paths to 260 characters: move this folder somewhere short, like C:\an-maker')
     need = [ROOT / 'Bases' / 'Xander.blend', ROOT / 'Bases' / 'Xander.json']
     need += [OUT / s.split(':')[0] / '06_fitted' / 'manifest.json' for s in catalog.all_specs()]
     miss = [str(p.relative_to(ROOT)) for p in need if not p.exists()]
