@@ -3,11 +3,11 @@
 ## Once
 
 1. On github.com, create a **private** repository, for example `an-maker`, with no README.
-2. Put its address in `tools/repo.txt` (e.g. `https://github.com/<you>/an-maker.git`), then commit and push:
+2. Put its address in `tools/repo.txt` (e.g. `https://github.com/ImmortalWalrus/an-maker.git`), then commit and push:
 
    ```
    git add tools/repo.txt && git commit -m "repo address"
-   git remote add origin https://github.com/<you>/an-maker.git
+   git remote add origin https://github.com/ImmortalWalrus/an-maker.git
    git push -u origin main
    ```
 
@@ -47,7 +47,7 @@ the live page, so the frozen copy never reaches the site. Refresh it only if pre
 ## The message to send
 
 > Hey Rick! Here's the AN Maker garment maker.
-> 1. Accept the GitHub invite, then open https://github.com/<you>/an-maker → green **Code** button → **Download ZIP**.
+> 1. Accept the GitHub invite, then open https://github.com/ImmortalWalrus/an-maker → green **Code** button → **Download ZIP**.
 > 2. Unzip it to a short path like `C:\an-maker`.
 > 3. Open that folder in Claude Code (or Codex) and type **set me up**. It asks you 4 quick questions and installs
 >    what's missing. Sign in to your own accounts when it asks, and never paste passwords into the chat.

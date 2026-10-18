@@ -1,1 +1,1 @@
-REPLACE-WITH-GITHUB-REPO-URL
+https://github.com/ImmortalWalrus/an-maker.git
