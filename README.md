@@ -35,7 +35,14 @@ and with other clothes, and shows you a preview.
 - Loose 3D pieces (hoodies, jackets, puffers, sweats, cargos) cost about 25 credits a try.
 - It tells you the cost first and never goes over your limit without asking.
 
-When you like it, say **save it**. It goes to GitHub, and then to the AN Maker page.
+It always asks: **"Is it good to publish, or would you like any changes?"**
+- Want changes? Just say what. It tells you the cost first:
+  - logos, prints, colours on fitted pieces: image generation only;
+  - a new shape or look for a 3D piece: about 25 credits a try.
+- Happy? Say **publish it**. It saves your garment and puts it live on the AN Maker page. Publishing needs Claude Code
+  and edit access from the owner; from Codex, the owner publishes it for you.
+
+It only makes clothes. It won't change the site itself.
 
 ## Updates
 

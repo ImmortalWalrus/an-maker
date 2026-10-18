@@ -93,6 +93,20 @@ def inspect(look, pieces):
     return fails
 
 
+def replace(key):
+    """A requested change: take the piece out of the wardrobe and set its old build aside (kept in Outfits/_replaced),
+    so the same key is built again from scratch. Free; the rebuild costs what a new piece costs."""
+    import time
+    (catalog.PIECES / f'{key}.json').unlink(missing_ok=True)
+    keep = OUT / '_replaced' / f'{key}-{time.strftime("%Y%m%d-%H%M%S")}'
+    for d in (OUT / 'tee-kits' / key, OUT / 'legging-kits' / key, OUT / f'src-{key}', OUT / f'gen-{key.replace("_", "-")}',
+              OUT / f'tee-{key.replace("_", "-")}', OUT / f'legs-{key.replace("_", "-")}'):
+        if d.exists():
+            keep.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(d), str(keep / d.name))
+    say(f'{key}: old version set aside, building it again')
+
+
 def check_key(key):
     if not key.replace('_', '').isalnum() or key != key.lower():
         stop(f'key must be lower_snake_case letters and digits: {key!r}')
@@ -103,10 +117,21 @@ def check_key(key):
 # ---------------------------------------------------------------- setup / doctor / update
 def cmd_setup(a):
     c = CFG.load()
-    c.update({'name': a.name, 'mesh': a.mesh, 'max_credits': a.max_credits, 'publish': a.publish == 'yes'})
+    c.update({'name': a.name, 'mesh': a.mesh, 'max_credits': a.max_credits, 'publish': a.publish == 'yes',
+              'role': a.role})
     c['blender'] = a.blender or c.get('blender') or CFG.find_blender()
     CFG.save(c)
     say(f'saved {CFG.CONFIG}')
+    if a.role == 'teammate':                                    # this machine may make garments, never change the site
+        lock = ROOT / '.claude' / 'settings.local.json'
+        paths = ['web/customizer/**', 'pipeline/**', 'docs/**', 'catalog/**', 'Bases/**', '.claude/**', 'tools/**',
+                 'CLAUDE.md', 'AGENTS.md', 'README.md', 'CHANGELOG.md', '.gitignore', '.gitattributes']
+        deny = [f'{tool}({pre}{q})' for tool in ('Edit', 'Write') for q in paths for pre in ('', '/')]
+        cur = json.loads(lock.read_text(encoding='utf-8')) if lock.exists() else {}
+        cur.setdefault('permissions', {})['deny'] = sorted(set(cur.get('permissions', {}).get('deny', []) + deny))
+        lock.parent.mkdir(exist_ok=True)
+        lock.write_text(json.dumps(cur, indent=2), encoding='utf-8')
+        say('teammate mode: the site, renderer and pipeline files are locked for the assistant on this machine')
     cmd_doctor(a)
 
 
@@ -199,6 +224,8 @@ def cmd_update(a):
 
 # ---------------------------------------------------------------- shell garments (no mesh credits)
 def cmd_shell_top(a):
+    if a.replace:
+        replace(a.key)
     check_key(a.key); c = cfg()
     import tee_kit as TK
     d = OUT / 'tee-kits' / a.key
@@ -212,6 +239,8 @@ def cmd_shell_top(a):
 
 
 def cmd_shell_bottom(a):
+    if a.replace:
+        replace(a.key)
     check_key(a.key); c = cfg()
     import legging_kit as LK
     d = LK.KITS / a.key
@@ -240,6 +269,8 @@ def combos(slot, spec):
 
 
 def cmd_generated(a):
+    if a.replace:
+        replace(a.key)
     check_key(a.key); c = cfg()
     mesh = c.get('mesh', 'none')
     if mesh == 'none' and not a.draw_only:
@@ -423,14 +454,18 @@ def main():
     s.add_argument('--max-credits', type=int, default=50)
     s.add_argument('--publish', choices=['yes', 'no'], default='no')
     s.add_argument('--blender', default='')
+    s.add_argument('--role', choices=['teammate', 'owner'], default='teammate')
     sub.add_parser('doctor'); sub.add_parser('update'); sub.add_parser('export'); sub.add_parser('preview')
     s = sub.add_parser('shell-top')
+    s.add_argument('--replace', action='store_true', help='rebuild an existing piece (a requested change)')
     s.add_argument('--key', required=True); s.add_argument('--label', required=True); s.add_argument('--theme', required=True)
     s.add_argument('--sleeve', type=float, default=0.45); s.add_argument('--hem', type=float, default=-2)
     s = sub.add_parser('shell-bottom')
+    s.add_argument('--replace', action='store_true', help='rebuild an existing piece (a requested change)')
     s.add_argument('--key', required=True); s.add_argument('--label', required=True); s.add_argument('--theme', required=True)
     s.add_argument('--leg', type=float, default=1.0); s.add_argument('--rise', type=float, default=9.5)
     s = sub.add_parser('generated')
+    s.add_argument('--replace', action='store_true', help='rebuild an existing piece (a requested change)')
     s.add_argument('--key', required=True); s.add_argument('--label', required=True)
     s.add_argument('--slot', choices=['top', 'bottom', 'outerwear'], required=True)
     s.add_argument('--description', required=True); s.add_argument('--ref', default='')

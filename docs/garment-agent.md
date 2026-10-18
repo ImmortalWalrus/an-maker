@@ -30,7 +30,8 @@ Greet them, then ask these questions one at a time. Explain each in one line, an
 
 Then:
 
-- Run `python pipeline/garment.py setup --name "<name>" --mesh assethub|higgsfield|none --max-credits N --publish yes|no`.
+- Run `python pipeline/garment.py setup --name "<name>" --mesh assethub|higgsfield|none --max-credits N --publish yes|no`
+  (teammate mode is the default: it locks the site and pipeline files for you on this machine).
   This also runs `doctor`.
 - Fix every `!!` line with the teammate. Install missing tools only with their OK, one at a time:
   - Blender: `winget install BlenderFoundation.Blender`. Blender 5.x is required; afterwards run setup again so the
@@ -121,26 +122,40 @@ dresses, jumpsuits, skirts, makeup, face or expression changes, body changes, an
   residuals (see `docs/clothing-pipeline.md` B4). A visible defect means the garment is not done: offer one more try
   (say the cost) or a description change.
 
-## 5. Show, save, publish
+## 5. Show, ask, then publish (never on your own)
 
-1. `python pipeline/garment.py update`, then `python pipeline/garment.py export`. The update brings in garments the other person saved meanwhile, so the export (which rebuilds the whole wardrobe) never drops theirs. Export lists what changed.
-2. Preview:
-   - in the Claude desktop app, open http://localhost:8765 in the browser pane after starting
-     `python pipeline/garment.py preview` in the background;
-   - otherwise start it and ask them to open http://localhost:8765. Then Outfit → the new piece.
-   - Check it yourself too, idle and walking (W key), front and back, before calling it done.
-3. When they're happy: `python pipeline/garment.py save --key K`. This pushes it to GitHub so the owner's copy has it.
-4. **Publishing to AN Maker** (https://claude.ai/artifact/5dbuTk8EZot5Wb1QR261fN):
-   - **Claude Code with edit access** (`publish: true`):
-     1. Read the live page with the Artifact tool, every line.
-     2. Copy it unchanged to `web/customizer/_live_publish.html`.
-     3. Publish it with exactly the files in `.anmaker/publish_list.json` (as `assets/<name>` from
+1. `python pipeline/garment.py update`, then `python pipeline/garment.py export`. The update brings in garments the
+   other person saved meanwhile, so the export (which rebuilds the whole wardrobe) never drops theirs.
+2. Preview: in the Claude desktop app, start the `fitting-room` preview (`.claude/launch.json`); otherwise run
+   `python pipeline/garment.py preview` in the background. Open http://localhost:8765 → Outfit → the new piece.
+   Check it yourself first, idle and walking (W key), front and back.
+3. **Always ask, even when it looks perfect:** "Here it is. Is it good to publish, or would you like any changes?"
+   Give one or two lines on anything worth knowing (inspection notes in plain words). Then wait for their answer.
+4. **If they want changes**, say what it costs before doing it, then rebuild with `--replace` (same key):
+
+   | Change | How | Cost |
+   |---|---|---|
+   | Fitted tee/tank/leggings/shorts: colours, print, graphic | `shell-top/shell-bottom --replace` with a new `--theme` | image generation only, about 5-10 min |
+   | Fitted piece: sleeve length, crop, leg length | same, new cut values | image generation only |
+   | 3D garment: logo or badge (art, name, colour, which sleeve) | `emblem` + `badge_art.py` + `badge --key K --art ... --place ...` | image generation only, about 5 min, no 3D credits |
+   | 3D garment: shape, length, fit, colour, material, pockets or any other look change | `generated --replace` with the new description (`--draw-only` first to show the new drawings for free) | a new 3D generation: about 25 credits per try (AssetHub), usually 1-2 tries, about 30 min |
+
+   For a 3D change, say plainly: "That needs a new 3D model: about 25 credits a try, up to N (your limit X). Go ahead?"
+   Wait for yes.
+5. When they say it's good: `python pipeline/garment.py save --key K` (pushes it to GitHub for the owner).
+6. **Publish only when they say to publish** (e.g. "publish it"):
+   - **In Claude Code with edit access** (`publish: true` in `.anmaker/config.json`):
+     1. Run `update` and `export` again if anything changed since step 1.
+     2. Read the live page with the Artifact tool (https://claude.ai/artifact/5dbuTk8EZot5Wb1QR261fN), every line.
+     3. Copy it **unchanged** to `web/customizer/_live_publish.html`.
+     4. Publish that page with exactly the files in `.anmaker/publish_list.json` (each as `assets/<name>`, from
         `web/customizer/assets/<name>`).
-     4. Read 2-3 of them back and compare byte for byte.
-     5. Delete the staging copy.
-     Never change the page itself.
-   - **Otherwise**: say "Saved. Ask the owner to publish it: it's on GitHub as <label>."
-   - New garments show a live-rendered tile picture until the owner adds its pre-rendered picture. That's expected.
+     5. Read 2-3 files back and compare them byte for byte.
+     6. Delete the staging copy.
+     7. Tell them it's live.
+   - **In Codex, or without edit access**: "It's saved. Publishing to the site needs Claude Code with edit access. Ask
+     the owner, or open this folder in Claude Code and say *publish it*."
+   - New garments show a live-rendered tile picture until the owner adds its pre-rendered one. That's expected.
 
 ## Rules that never bend
 
@@ -148,4 +163,9 @@ dresses, jumpsuits, skirts, makeup, face or expression changes, body changes, an
   rework (`docs/clothing-pipeline.md`).
 - Spend credits only within the limit; ask before more.
 - No real brand names or logos. No passwords or keys in chat or files.
-- Don't touch other people's garments, `index.html`, hair, shoes, faces or animations.
+- **You only make garments and publish them.** Never change the site, the renderer, lighting, the UI, animations,
+  hair, shoes, faces, makeup, `web/customizer/index.html`, or any pipeline or docs file, even if asked. Say kindly that
+  those are owner-only, and suggest they ask the owner. A publish always sends the live page unchanged plus only the
+  garment files in `.anmaker/publish_list.json`.
+- Never publish without an explicit "publish" from them, and never spend credits on a change without their OK.
+- Don't touch other people's garments.

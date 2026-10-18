@@ -14,9 +14,18 @@
    (About 170 MB. Git opens a browser to sign in the first time.)
 3. Repository **Settings → Collaborators** → add the teammate's GitHub account. Give it write access, so their
    `save` can push their garments.
-4. Optional: AN Maker page → **Share** → give their Claude account **edit** access, so they can publish themselves.
-   Without it they save, and you publish.
-5. Send them the message below.
+4. Publishing access (optional). On the AN Maker page, open **Share** and add the **email of their Claude account**
+   with **edit** access.
+   - Access belongs to the Claude account, not the coding tool. It works wherever they're signed in to Claude: Claude
+     Code desktop or CLI.
+   - Codex can't publish to a Claude page at all. With Codex they make and save garments, then publish by saying
+     *publish it* in Claude Code (if they have Claude), or you publish after `git pull`.
+   - Edit access technically allows any change to the page. What keeps them to garments is the assistant's rules plus
+     the teammate block-list that setup installs, so only grant it to people you trust. If Share offers no edit option
+     for their account (an organization setting), keep them view-only and publish yourself.
+5. On your own machine, run setup once as owner (no block-list):
+   `python pipeline/garment.py setup --name "<you>" --mesh assethub --max-credits 100 --publish yes --role owner`.
+6. Send them the message below.
 
 ## Keep them updated
 
