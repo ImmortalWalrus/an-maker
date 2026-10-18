@@ -152,7 +152,7 @@ def cmd_doctor(a):
     line(shutil.which('git'), 'git (for updates)', 'install Git for Windows: https://git-scm.com/download/win')
     line((ROOT / '.git').exists(), 'linked to GitHub for updates', 'python pipeline/garment.py update')
     line(len(str(ROOT)) <= 60, f'folder path is short enough ({len(str(ROOT))} characters)',
-         'Windows limits paths to 260 characters: move this folder somewhere short, like C:\an-maker')
+         r'Windows limits paths to 260 characters: move this folder somewhere short, like C:\an-maker')
     need = [ROOT / 'Bases' / 'Xander.blend', ROOT / 'Bases' / 'Xander.json']
     need += [OUT / s.split(':')[0] / '06_fitted' / 'manifest.json' for s in catalog.all_specs()]
     miss = [str(p.relative_to(ROOT)) for p in need if not p.exists()]

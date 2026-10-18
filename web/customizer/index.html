@@ -1055,11 +1055,33 @@ function hemFollowsLegs(m, sampler) {
 // garment vertex takes the move of the nearest point on the skin surface, with its offset from the skin turned as the
 // skin surface tilts (up to 2 cm), so cloth lying on the skin follows it exactly and stacked layers move together.
 // Where two body parts are about equally near (crotch, armpit), the moves are then smoothed over the garment itself,
-// over half the vertex's distance from the skin, so loose folds cannot kink. Stored as two morph targets driven with the
+// over half the vertex's distance from the skin, so loose folds cannot kink. Stored as morph targets driven with the
 // body's: at 0 every piece is exactly as generated. Pieces the shapes never reach (hair, shoes) get no morph targets.
 // Worked out in short slices after a piece loads, so the page never stalls.
+// Hips works the same way. Its bone scales would push loose cloth out in proportion to its distance from the bone (a
+// puffer hem grew twice as far as the seat under it, and tee hems flared with a kink at the side), so clothes are bound
+// to unscaled stand-ins of those bones (clothBone) and get the skin's own Hips move instead, on the plain body and on
+// the feminine one.
 const BODY_SHAPES = ['bodyOnly_geo_blendShape.male', 'bodyOnly_geo_blendShape.female'];
+const CLOTH_SHAPES = [...BODY_SHAPES, 'hips', 'hips.female'];
 const shapedMeshes = [];
+function shapeClothes(list = shapedMeshes) {
+  const f = face.body?.female || 0, h = face.hips || 0, amt = [face.body?.male || 0, f, h * (1 - f), h * f];
+  for (const g of list) CLOTH_SHAPES.forEach((s, k) => { g.morphTargetInfluences[k] = amt[k]; });
+}
+const clothBones = {};
+function clothBone(name) {                                        // the avatar's bone, or an unscaled stand-in for a Hips-scaled one
+  const b = bones[name];
+  if (!b || !HIP_SIZE.some(([n, j]) => n === name && j.scale)) return b;
+  if (!clothBones[name]) {
+    const s = new THREE.Bone();
+    s.name = name;
+    s.updateMatrix = function () { this.position.copy(b.position); this.quaternion.copy(b.quaternion); this.scale.set(1, 1, 1); THREE.Object3D.prototype.updateMatrix.call(this); };
+    b.parent.add(s);
+    clothBones[name] = s;
+  }
+  return clothBones[name];
+}
 let shapeQueue = Promise.resolve();                               // pieces are shaped one at a time, in the background
 const queueBodyShape = (m) => { shapeQueue = shapeQueue.then(() => followBodyShape(m)).catch((e) => console.warn('body shape:', e)); };
 const cellKey = (x, y, z) => ((x + 512) * 1024 + (y + 512)) * 1024 + (z + 512);
