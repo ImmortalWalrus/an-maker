@@ -330,11 +330,8 @@ def cmd_update(a):
         say('linked')
         return
     before = git('rev-parse', 'HEAD', check=False).stdout.strip()
-    dirty = git('status', '--porcelain', '--untracked-files=no').stdout.strip()
-    if dirty:                                                   # teammates don't edit pipeline files: set edits aside
-        git('stash', '-q')
-        say('local edits to pipeline files were set aside (git stash) so the update could go in')
-    r = git('pull', '-q', '--rebase', 'origin', 'main', check=False)
+    # local edits (the owner's work in progress, e.g. the page) are put back right after the pull, never left stashed
+    r = git('pull', '-q', '--rebase', '--autostash', 'origin', 'main', check=False)
     if r.returncode:
         stop('could not pull the update: ' + r.stdout[-500:])
     after = git('rev-parse', 'HEAD').stdout.strip()
@@ -559,9 +556,9 @@ def cmd_publish(a):
     it, free). Sends only this garment's files, the manifest and the body (its skin masks); never the page itself, and
     never another garment's files."""
     c = cfg()
-    e = next((e for e in catalog.entries() if e['spec'].endswith(':' + a.key)), None)
-    if not e:
+    if not any(sp.endswith(':' + a.key) for sp in catalog.all_specs()):
         stop(f'{a.key} is not in the wardrobe')
+    e = {'label': catalog.labels().get(a.key) or a.key.replace('_', ' ').title()}
     cmd_update(a)                                               # the newest pipeline and the other person's garments
     cmd_export(a)
     sys.path.insert(0, str(ROOT / 'pipeline' / 'web'))
