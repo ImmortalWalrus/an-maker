@@ -1,0 +1,63 @@
+{
+  "note": "The fitted-tee collection: one design per shirt, each its own customizer tile (no sleeve / length options). sleeve: 0 sleeveless, 0.45 short, 0.9 elbow; hem_cm: -2 standard, 6 crop. Built by: python pipeline/tpose/tee_kit.py --collection Outfits/tee-kits/collection.json Kits with \"maker\": \"code\" are drawn by pipeline/tpose/tee_graphics.py (exact logos and set type), not Codex.",
+  "shirts": [
+    {
+      "key": "tropic_tank",
+      "kit": "tropic",
+      "sleeve": 0,
+      "hem_cm": -2,
+      "theme": "tropical surf: big hand-painted monstera leaves, palm fronds and hibiscus flowers in teal, jungle green, coral and warm sand, loose painterly brushwork; chest graphic: a retro surf badge with a wave and a setting sun (no text)"
+    },
+    {
+      "key": "y2k_butterfly_crop_tank",
+      "kit": "y2k-butterfly",
+      "sleeve": 0,
+      "hem_cm": 6,
+      "theme": "Y2K pop: a soft pastel holographic gradient (lilac, baby blue, pink, mint) scattered with glossy cartoon butterflies and little sparkles; chest graphic: a shiny chrome bubble heart with sparkles"
+    },
+    {
+      "key": "midnight_koi_tee",
+      "kit": "midnight-koi",
+      "sleeve": 0.45,
+      "hem_cm": -2,
+      "theme": "modern Japanese streetwear: bold indigo and midnight-navy ocean waves with crisp white foam curls, a few cherry blossom petals; chest graphic: a vivid orange and white koi fish curling in a circle; back graphic: a large koi pair"
+    },
+    {
+      "key": "skate_check_crop_tee",
+      "kit": "skate-check",
+      "sleeve": 0.45,
+      "hem_cm": 6,
+      "theme": "90s skate: a bold black-and-white checkerboard warped by neon green paint drips and splatters; chest graphic: a cartoon flaming skateboard (no text)"
+    },
+    {
+      "key": "groovy_sun_tee",
+      "kit": "funky70s-fabric",
+      "sleeve": 0.9,
+      "hem_cm": -2,
+      "theme": "funky 1970s psychedelic (already made)"
+    },
+    {
+      "key": "cosmic_cat_crop_tee",
+      "kit": "cosmic-cat",
+      "sleeve": 0.9,
+      "hem_cm": 6,
+      "theme": "cosmic: a deep space nebula in violet, magenta and electric blue with stars, tiny planets and comets; chest graphic: a cute cartoon cat in an astronaut helmet floating among stars"
+    },
+    {
+      "key": "sidequest_tee",
+      "kit": "sidequest",
+      "sleeve": 0.45,
+      "hem_cm": -2,
+      "maker": "code",
+      "theme": "SideQuest merch: the approved vector wordmark in bone on the chest, brand ground with a faint topographic map and apricot quest markers"
+    },
+    {
+      "key": "an_secret_tee",
+      "kit": "an-secret",
+      "sleeve": 0.45,
+      "hem_cm": -2,
+      "maker": "code",
+      "theme": "AN slogan tee: front 'AN / ask me what it stands for', back 'Absolutely Not telling.' with the A and N picked out"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "pieces": [
+    {
+      "key": "monchill_puffer_jacket",
+      "slot": "outerwear",
+      "description": "A glossy black quilted down puffer jacket, hip-length, with wide horizontal puffy baffles, a short stand-up collar and a full front zip. Long puffy sleeves that taper near the wrist into a neat, soft cuff: the opening leaves about a finger's width (1-2 cm) of room all round the wrist - not tight, and never a wide bell opening as big as the puffy sleeve. The cuff is one solid, continuous edge of the sleeve: no separate loose rim, ring or loop standing past it. The sleeves are PLAIN: no badge, patch or logo anywhere on the jacket (ignore the badge in the concept image - the brand badge is added afterwards).",
+      "loft_mm": 35,
+      "badge": {
+        "place": "sleeve-left",
+        "art": "Outfits/spoof-puffer/badge/badge.png",
+        "note": "baked by decal_bake.py after the mesh passes the gate"
+      }
+    }
+  ],
+  "over_look": "C:\\Users\\tymcn\\Downloads\\Genies-models\\Outfits\\_looks\\base-puffer",
+  "from": "C:\\Users\\tymcn\\Downloads\\Genies-models\\Outfits\\spoof-src"
+}

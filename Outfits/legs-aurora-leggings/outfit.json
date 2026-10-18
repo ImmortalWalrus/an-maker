@@ -1,0 +1,28 @@
+{
+  "pieces": [
+    {
+      "key": "aurora_leggings",
+      "slot": "bottom",
+      "description": "Skin-tight body-shell leggings: made from the Xander body surface, 1.5 mm off the skin, design in the texture",
+      "shell": {
+        "base": "Xander",
+        "key": "aurora_leggings",
+        "leg": 1.0,
+        "rise_cm": 9.5,
+        "offset_mm": 1.5,
+        "thick_mm": 1.2,
+        "smooth": 8,
+        "max_bridge_mm": 8.0,
+        "edge_smooth": 25,
+        "waistband_cm": 5.0,
+        "smooth_body": 1,
+        "max_ripple_mm": 0.9,
+        "color": "0.10,0.10,0.11",
+        "tex": 2048,
+        "kit": "C:\\Users\\tymcn\\Downloads\\Genies-models\\Outfits\\legging-kits\\aurora\\kit",
+        "waist_z_m": 0.8687,
+        "hem_z_m": 0.1254
+      }
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "pieces": [
+    {
+      "key": "midnight_koi_tee",
+      "slot": "top",
+      "description": "Fitted body-shell crew-neck tee (Bitmoji-style): made from the Xander body surface, 7 mm off the skin, design in the texture",
+      "shell": {
+        "base": "Xander",
+        "key": "midnight_koi_tee",
+        "layer": 2,
+        "neck": "crew",
+        "neck_front_cm": 0.35,
+        "neck_back_cm": 0.5,
+        "neck_width_cm": 5.2,
+        "sleeve": 0.45,
+        "hem_cm": -2.0,
+        "offset_mm": 7.0,
+        "sleeve_offset_mm": 8.0,
+        "thick_mm": 3.0,
+        "smooth": 12,
+        "color": "0.93,0.93,0.92",
+        "graphic": "",
+        "graphic_width_cm": 14.0,
+        "tex": 2048,
+        "kit": "C:\\Users\\tymcn\\Downloads\\Genies-models\\Outfits\\tee-kits\\midnight-koi\\kit",
+        "drape": 1.0,
+        "hem_flare_mm": 6.0,
+        "hem_band_cm": 4.0,
+        "sleeve_flare_mm": 4.0,
+        "back_ease_mm": 12.0,
+        "collar_ease_mm": 10.0,
+        "edge_smooth": 25,
+        "hem_z_m": 0.7537,
+        "hem_band_top_z_m": 0.7937
+      }
+    }
+  ]
+}

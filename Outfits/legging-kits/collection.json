@@ -1,0 +1,42 @@
+{
+  "note": "Skin-tight bottoms (legging_shell.py), one design each, each its own customizer tile. leg: 0 crotch .. 1 ankle (bike shorts 0.3, capris 0.72, leggings 1); rise_cm: waistline above the Hips joint. Built by: python pipeline/tpose/legging_kit.py Entries with \"maker\": \"code\" are brand-style kits (legging_graphics.py: plain fabric, printed logos; Codex draws only the mark).",
+  "bottoms": [
+    {
+      "key": "aurora_leggings",
+      "kit": "aurora",
+      "leg": 1.0,
+      "rise_cm": 9.5,
+      "theme": "northern lights: a deep midnight-navy fabric with soft flowing aurora ribbons in teal, emerald and violet sweeping diagonally down the leg, a scatter of tiny stars"
+    },
+    {
+      "key": "volt_bike_shorts",
+      "kit": "volt",
+      "leg": 0.3,
+      "rise_cm": 9.5,
+      "theme": "pro athletic compression wear: solid matte black with a bold neon volt-yellow panel running down the outside of the leg, edged by a thin white line, a few sharp angular speed slashes"
+    },
+    {
+      "key": "bloom_camo_capris",
+      "kit": "bloom-camo",
+      "leg": 0.72,
+      "rise_cm": 9.5,
+      "theme": "soft floral camo: organic camo blotches in blush pink, lilac, sage and cream with small hand-drawn daisies hidden in the shapes"
+    },
+    {
+      "key": "lululemur_align_leggings",
+      "kit": "lululemur",
+      "leg": 0.93,
+      "rise_cm": 9.5,
+      "maker": "code",
+      "theme": "parody of premium yoga leggings: buttery matte spruce, reflective silver lemur-tail mark on the left hip, lululemur on the back waistband"
+    },
+    {
+      "key": "like_pro_shorts",
+      "kit": "like-pro",
+      "leg": 0.25,
+      "rise_cm": 9.5,
+      "maker": "code",
+      "theme": "parody of pro compression shorts: black, LIKE PRO round the waistband, a thumbs-up swoop and JUST LIKE IT. on the left thigh"
+    }
+  ]
+}

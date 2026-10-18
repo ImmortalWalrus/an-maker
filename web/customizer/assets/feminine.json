@@ -1,0 +1,19 @@
+{
+ "name": "Clementine",
+ "from": "GeniesStarterPack Clementine.gltf (shape check) + Bases/Clementine.glb (textures)",
+ "morphs": {
+  "bodyOnly_geo_blendShape.female": 1
+ },
+ "textures": {
+  "Submesh_0": {
+   "map": "feminine_Submesh_0_Albedo.webp"
+  },
+  "Submesh_1": {
+   "emissiveMap": "feminine_Submesh_1_Emission.webp",
+   "map": "feminine_Submesh_1_Albedo.webp"
+  },
+  "Submesh_3": {
+   "map": "feminine_Submesh_3_Albedo.webp"
+  }
+ }
+}

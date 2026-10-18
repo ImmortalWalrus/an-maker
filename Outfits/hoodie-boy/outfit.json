@@ -1,0 +1,34 @@
+{
+  "pieces": [
+    {
+      "key": "navy_teal_tousled_hair",
+      "slot": "hair",
+      "description": "Short, thick navy-blue hair with teal highlights forms a rounded, tousled cut with layered strands and a long, uneven fringe."
+    },
+    {
+      "key": "white_crew_neck_tshirt",
+      "slot": "top",
+      "description": "A plain white cotton jersey T-shirt has a crew neckline and a hip-length hem visible beneath the hoodie."
+    },
+    {
+      "key": "olive_cargo_joggers",
+      "slot": "bottom",
+      "description": "Olive-green woven cargo joggers have a loose, baggy full-length cut, large flap pockets on the outer thighs, gathered ankle cuffs, and no visible print."
+    },
+    {
+      "key": "black_graphic_hoodie",
+      "slot": "outerwear",
+      "description": "A black fleece pullover hoodie has an oversized hip-length cut, long sleeves, a hood, ribbed cuffs and hem, a kangaroo pocket, and a red jagged lettering print above a large white-and-black chest graphic."
+    },
+    {
+      "key": "multicolor_high_top_sneakers",
+      "slot": "footwear",
+      "description": "A pair of ankle-high leather sneakers combines navy-blue and white panels, red tongue and collar accents, white laces, cream midsoles, and purple outsole edges."
+    },
+    {
+      "key": "gray_crossbody_bag",
+      "slot": "accessory",
+      "description": "A small gray canvas crossbody bag has a rounded rectangular shape, dark piping, zippered compartments, and a wide charcoal strap crossing the chest to hold the pouch at the hip."
+    }
+  ]
+}

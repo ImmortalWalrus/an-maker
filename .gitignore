@@ -1,0 +1,37 @@
+# The repo holds the pipeline plus only the data it needs to build and preview the wardrobe. Everything else in this
+# folder (the Genies pack, backups, scratch looks, raw generations) stays local. Needed data files are added with
+# `git add -f` (pipeline/garment.py save does that); once tracked, git keeps them updated as usual.
+
+# local, per machine
+/.anmaker/
+__pycache__/
+*.pyc
+*.blend1
+.claude/settings.local.json
+
+# big or private: never in git
+/GeniesStarterPack-main/
+/GeniesStarterPack.zip
+/Base-models/
+/Unclothed-staging/
+/Unclothed-verification/
+/Concepts/
+/Wardrobe/
+/research/
+/Expression-controls.csv
+/DOWNLOAD-INFO.txt
+/prepare_unclothed.py
+
+# data: only the files added by hand (git add -f) are tracked
+/Bases/*
+/Outfits/*
+/web/customizer/assets-test/
+/web/customizer/_ref/
+/web/customizer/_live*.html
+/web/customizer/_v*.html
+# build outputs of the clothing export (made by `garment.py export`)
+/web/customizer/assets/*.glb
+/web/customizer/assets/piece_*
+/web/customizer/assets/body.*
+/web/customizer/assets/body_*
+/web/customizer/assets/manifest.json

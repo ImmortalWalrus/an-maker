@@ -1,0 +1,75 @@
+{
+  "_doc": "Wardrobe slots for Genies modular clothing. Pieces are fitted in ascending 'layer' order; each non-rigid piece is pushed outside the body plus every lower layer by skin_offset_m + layer_gap_m, so a higher layer always sits over a lower one. 'rigid' pieces (shoes, hats, bags) are only moved and scaled, never bent, and act as colliders for the layers above them. 'hides' lists body regions masked out while worn, so skin cannot poke through. 'excludes' lists slots that cannot be worn at the same time. 'bind_pose' is the A-pose every base and wardrobe piece is bound in (arm angle below horizontal, leg spread).",
+  "bind_pose": {
+    "arm_deg": 65,
+    "leg_deg": 6
+  },
+  "skin_offset_m": 0.002,
+  "layer_gap_m": 0.003,
+  "slots": {
+    "hair": {
+      "layer": 0,
+      "rigid": false,
+      "excludes": []
+    },
+    "legwear_l": {
+      "layer": 0,
+      "rigid": false,
+      "excludes": []
+    },
+    "legwear_r": {
+      "layer": 0,
+      "rigid": false,
+      "excludes": []
+    },
+    "footwear": {
+      "layer": 0,
+      "rigid": true,
+      "excludes": []
+    },
+    "bottom": {
+      "layer": 1,
+      "rigid": false,
+      "excludes": [
+        "fullbody"
+      ]
+    },
+    "top": {
+      "layer": 2,
+      "rigid": false,
+      "excludes": [
+        "fullbody"
+      ]
+    },
+    "fullbody": {
+      "layer": 2,
+      "rigid": false,
+      "excludes": [
+        "top",
+        "bottom"
+      ]
+    },
+    "hands": {
+      "layer": 2,
+      "rigid": false,
+      "excludes": []
+    },
+    "outerwear": {
+      "layer": 3,
+      "rigid": false,
+      "excludes": [
+        "fullbody"
+      ]
+    },
+    "headwear": {
+      "layer": 3,
+      "rigid": true,
+      "excludes": []
+    },
+    "accessory": {
+      "layer": 4,
+      "rigid": true,
+      "excludes": []
+    }
+  }
+}

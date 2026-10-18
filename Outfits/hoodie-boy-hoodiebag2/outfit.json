@@ -1,0 +1,15 @@
+{
+  "pieces": [
+    {
+      "key": "black_graphic_hoodie_with_gray_crossbody_bag",
+      "slot": "outerwear",
+      "bundle_of": [
+        "black_graphic_hoodie",
+        "gray_crossbody_bag"
+      ],
+      "description": "A black fleece pullover hoodie has an oversized hip-length cut, long sleeves, a hood, ribbed cuffs and hem, a kangaroo pocket, and a red jagged lettering print above a large white-and-black chest graphic. Worn TOGETHER with it, as part of the same piece: A small gray canvas crossbody bag has a rounded rectangular shape, dark piping, zippered compartments, and a wide charcoal strap crossing the chest to hold the pouch at the hip. ONE combined piece: the black_graphic_hoodie and the gray_crossbody_bag with its whole strap exactly as worn on it."
+    }
+  ],
+  "over_look": "C:\\Users\\tymcn\\Downloads\\Genies-models\\Outfits\\_looks\\full-look",
+  "from": "C:\\Users\\tymcn\\Downloads\\Genies-models\\Outfits\\hoodie-boy"
+}

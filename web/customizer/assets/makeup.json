@@ -1,0 +1,28 @@
+{
+ "uv": [
+  0.02978515625,
+  0.65966796875,
+  0.39990234375,
+  1.0
+ ],
+ "looks": [
+  {
+   "id": "clementine",
+   "label": "Winged",
+   "from": "Clementine",
+   "file": "makeup_clementine.png"
+  },
+  {
+   "id": "alex",
+   "label": "Gems",
+   "from": "Alex",
+   "file": "makeup_alex.png"
+  },
+  {
+   "id": "sticker",
+   "label": "Sweet",
+   "from": "Sticker",
+   "file": "makeup_sticker.png"
+  }
+ ]
+}
