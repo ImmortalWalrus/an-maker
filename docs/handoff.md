@@ -29,15 +29,20 @@
 
 ## Keep them updated
 
-Everything they run starts with `python pipeline/garment.py update`, which pulls whatever you've pushed. So after you
-change the pipeline, the docs, the page or its assets:
+Everything they run starts with `python pipeline/garment.py update`, which pulls whatever you've pushed. The repo is
+the **garment maker** only: the pipeline, its docs, the catalog and garment data. After you change those:
 
 ```
-git add -A pipeline docs catalog CHANGELOG.md web/customizer/index.html web/customizer/assets && git commit -m "..." && git push
+git add -A pipeline docs catalog CHANGELOG.md && git commit -m "..." && git push
 ```
 
 Add a line to `CHANGELOG.md`. They see it the next time they make something. Garments they save arrive in your copy on
 your next `git pull`. Run it before you publish, so the export includes theirs.
+
+The **engine** (the AN Maker page and its assets) is not logged here. The repo keeps one frozen copy of it
+(`web/customizer/index.html` and the page's assets) only so the teammate's local preview runs. Publishing always uses
+the live page, so the frozen copy never reaches the site. Refresh it only if previews ever stop matching the site
+(for example after a change to how garments load): commit the current page as "preview snapshot refresh".
 
 ## The message to send
 
