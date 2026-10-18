@@ -1132,18 +1132,29 @@ async function followBodyShape(m) {
   const SIGMA = 0.005, CAP = 0.02, SMOOTH = 0.5, SMOOTH_MAX = 0.02;
   let slice = performance.now();
   const breathe = async () => { if (performance.now() - slice > 12) { await new Promise((r) => setTimeout(r)); slice = performance.now(); } };
-  // 1. the skin in this piece's fit pose, with both blend-shape moves and the surface normals before and after them
+  // 1. the skin in this piece's fit pose, with every move (both blend shapes; Hips on the plain and on the feminine body)
+  //    and the surface normals before and after each
   const fit = Object.fromEntries(m.skeleton.bones.map((b, i) => [b.name, m.skeleton.boneInverses[i].clone().invert()]));
-  const Tb = S.names.map((n, i) => (fit[n] ? fit[n].clone() : S.bindInv[i].clone().invert()).multiply(S.bindInv[i]).multiply(skin.bindMatrix));
+  const fitOf = (n, i) => fit[n] ? fit[n].clone() : S.bindInv[i].clone().invert();
+  const hipScale = Object.fromEntries(HIP_SIZE.filter(([, j]) => j.scale).map(([n, j]) => [n, new THREE.Matrix4().makeScale(...j.scale)]));
+  const Tb = S.names.map((n, i) => fitOf(n, i).multiply(S.bindInv[i]).multiply(skin.bindMatrix));
+  const Th = S.names.map((n, i) => hipScale[n] ? fitOf(n, i).multiply(hipScale[n]).multiply(S.bindInv[i]).multiply(skin.bindMatrix) : Tb[i]);
   const sp = skin.geometry.getAttribute('position'), si = skin.geometry.getAttribute('skinIndex'), sw = skin.geometry.getAttribute('skinWeight');
-  const nb = sp.count, pos = new Float32Array(nb * 3), del = S.sets.map(() => new Float32Array(nb * 3));
-  const M = new THREE.Matrix4(), L = new THREE.Matrix3(), v = new THREE.Vector3();
+  const nb = sp.count, pos = new Float32Array(nb * 3), del = CLOTH_SHAPES.map(() => new Float32Array(nb * 3));
+  const M = new THREE.Matrix4(), Mh = new THREE.Matrix4(), L = new THREE.Matrix3(), v = new THREE.Vector3(), x = new THREE.Vector3(), d = new THREE.Vector3();
   for (let i = 0; i < nb; i++) {
-    const e = M.elements; e.fill(0);
-    for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w) { const t = Tb[si.getComponent(i, k)].elements; for (let j = 0; j < 16; j++) e[j] += w * t[j]; } }
-    v.fromBufferAttribute(sp, i).applyMatrix4(M).toArray(pos, i * 3);
+    const e = M.elements, eh = Mh.elements; e.fill(0); eh.fill(0);
+    for (let k = 0; k < 4; k++) {
+      const w = sw.getComponent(i, k);
+      if (w) { const j0 = si.getComponent(i, k), t = Tb[j0].elements, th = Th[j0].elements; for (let j = 0; j < 16; j++) { e[j] += w * t[j]; eh[j] += w * th[j]; } }
+    }
+    x.fromBufferAttribute(sp, i);
+    v.copy(x).applyMatrix4(M).toArray(pos, i * 3);
     L.setFromMatrix4(M);
     S.sets.forEach((a, s) => v.fromBufferAttribute(a, i).applyMatrix3(L).toArray(del[s], i * 3));
+    v.copy(x).applyMatrix4(Mh); d.copy(x).applyMatrix4(M); v.sub(d).toArray(del[2], i * 3);                   // Hips, plain body
+    x.add(d.fromBufferAttribute(S.sets[1], i));
+    v.copy(x).applyMatrix4(Mh); d.copy(x).applyMatrix4(M); v.sub(d).toArray(del[3], i * 3);                   // Hips, feminine body
   }
   const gp = g.getAttribute('position'), n = gp.count, W = new Float32Array(n * 3), lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
   for (let i = 0; i < nb; i++) if (Math.hypot(...del.map((D) => Math.hypot(D[i * 3], D[i * 3 + 1], D[i * 3 + 2]))) > 1e-5) {
@@ -1155,7 +1166,9 @@ async function followBodyShape(m) {
     if (v.x > lo[0] && v.x < hi[0] && v.y > lo[1] && v.y < hi[1] && v.z > lo[2] && v.z < hi[2]) reached = true;
   }
   if (!reached) return;
-  const N0 = skinNormals(pos), N1 = del.map((D) => skinNormals(pos.map((x, i) => x + D[i])));
+  const fem = pos.map((x, i) => x + del[1][i]), from = [pos, pos, pos, fem];   // the skin each move starts from
+  const N0s = [skinNormals(pos), skinNormals(fem)], N0 = [N0s[0], N0s[0], N0s[0], N0s[1]];
+  const N1 = del.map((D, s) => skinNormals(from[s].map((x, i) => x + D[i])));
   const cell = 0.02, tris = new Map();
   for (let t = 0; t < skinIndex.length; t += 3) {
     const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
@@ -1164,7 +1177,7 @@ async function followBodyShape(m) {
       for (let z = Math.floor(lo[2] / cell); z <= Math.floor(hi[2] / cell); z++) { const k = cellKey(x, y, z); (tris.get(k) || tris.set(k, []).get(k)).push(t); }
   }
   // 2. each garment vertex: the move of the nearest skin point, blended over triangles within a few mm of equally near
-  const dist = new Float32Array(n), raw = S.sets.map(() => new Float32Array(n * 3)), seen = new Int32Array(skinIndex.length / 3).fill(-1);
+  const dist = new Float32Array(n), raw = CLOTH_SHAPES.map(() => new Float32Array(n * 3)), seen = new Int32Array(skinIndex.length / 3).fill(-1);
   let candT = new Int32Array(1024), candB = new Float64Array(4096);
   const bc = [0, 0, 0, 0], n0 = new THREE.Vector3(), n1 = new THREE.Vector3(), off = new THREE.Vector3(), turn = new THREE.Vector3(), q = new THREE.Quaternion();
   for (let i = 0; i < n; i++) {
@@ -1196,8 +1209,8 @@ async function followBodyShape(m) {
       const at = (A, k) => bu * A[a + k] + bv * A[b + k] + bw * A[c + k];
       off.set(v.x - at(pos, 0), v.y - at(pos, 1), v.z - at(pos, 2));
       if (off.length() > CAP) off.setLength(CAP);
-      n0.set(at(N0, 0), at(N0, 1), at(N0, 2)).normalize();
       del.forEach((D, s) => {
+        n0.set(at(N0[s], 0), at(N0[s], 1), at(N0[s], 2)).normalize();
         n1.set(at(N1[s], 0), at(N1[s], 1), at(N1[s], 2)).normalize();
         turn.copy(off).applyQuaternion(q.setFromUnitVectors(n0, n1)).sub(off);
         for (let k = 0; k < 3; k++) raw[s][i * 3 + k] += w * (at(D, k) + turn.getComponent(k));
@@ -1208,12 +1221,12 @@ async function followBodyShape(m) {
   // 3. smooth over the garment, over half the distance from the skin: cloth on the skin stays exact
   const gc = 0.02, near = new Map();
   for (let i = 0; i < n; i++) { const kk = cellKey(Math.floor(W[i * 3] / gc), Math.floor(W[i * 3 + 1] / gc), Math.floor(W[i * 3 + 2] / gc)); (near.get(kk) || near.set(kk, []).get(kk)).push(i); }
-  const out = S.sets.map(() => new Float32Array(n * 3)), inv = new THREE.Matrix3().setFromMatrix4(m.bindMatrix).invert(), acc = [0, 0, 0, 0, 0, 0];
+  const K = CLOTH_SHAPES.length * 3, out = CLOTH_SHAPES.map(() => new Float32Array(n * 3)), inv = new THREE.Matrix3().setFromMatrix4(m.bindMatrix).invert(), acc = new Array(K).fill(0);
   let most = 0;
   for (let i = 0; i < n; i++) {
     if (!(i & 255)) await breathe();
     const s = Math.min(SMOOTH_MAX, SMOOTH * dist[i]);
-    if (s < 0.0015) for (let k = 0; k < 6; k++) acc[k] = raw[k / 3 | 0][i * 3 + k % 3];
+    if (s < 0.0015) for (let k = 0; k < K; k++) acc[k] = raw[k / 3 | 0][i * 3 + k % 3];
     else {
       const R = 2.5 * s, rc = Math.ceil(R / gc), cx = Math.floor(W[i * 3] / gc), cy = Math.floor(W[i * 3 + 1] / gc), cz = Math.floor(W[i * 3 + 2] / gc);
       let ws = 0;
@@ -1223,17 +1236,17 @@ async function followBodyShape(m) {
         if (d2 > R * R) continue;
         const w = Math.exp(-d2 / (2 * s * s));
         ws += w;
-        for (let k = 0; k < 6; k++) acc[k] += w * raw[k / 3 | 0][j * 3 + k % 3];
+        for (let k = 0; k < K; k++) acc[k] += w * raw[k / 3 | 0][j * 3 + k % 3];
       }
-      for (let k = 0; k < 6; k++) acc[k] /= ws;
+      for (let k = 0; k < K; k++) acc[k] /= ws;
     }
     out.forEach((o, s2) => { v.set(acc[s2 * 3], acc[s2 * 3 + 1], acc[s2 * 3 + 2]); most = Math.max(most, v.length()); v.applyMatrix3(inv).toArray(o, i * 3); });
   }
   if (most < 1e-5) return;                                        // untouched by the shapes (hair, shoes)
-  g.morphAttributes.position = out.map((a, s) => Object.assign(new THREE.BufferAttribute(a, 3), { name: BODY_SHAPES[s] }));
+  g.morphAttributes.position = out.map((a, s) => Object.assign(new THREE.BufferAttribute(a, 3), { name: CLOTH_SHAPES[s] }));
   g.morphTargetsRelative = true;
   m.updateMorphTargets();
-  BODY_SHAPES.forEach((s, k) => { m.morphTargetInfluences[k] = (k ? face.body.female : face.body.male) || 0; });
+  shapeClothes([m]);
   shapedMeshes.push(m);
   console.info(`${m.name}: follows the body shape (up to ${(most * 1000).toFixed(1)} mm)`);
 }
@@ -1302,7 +1315,7 @@ async function loadPiece(key) {
     if (p.slot === 'hair') { clampSpecular(m.material, 0.8); dimRectLight(m, backBox, 0.1); }   // light linking: the face's side-back light barely touches the hair (no hot glints)
     if (p.slot === 'footwear') { clampSpecular(m.material, 0.18); }   // the key's glint and its hot diffuse on the toe box stay soft
     if (p.slot === 'footwear') { m.material.roughness = 0.56; m.material.envMapIntensity = 0.13; m.material.emissive.set(0x1e2536); m.material.normalScale.multiplyScalar(0.5); }   // leather: one broad soft sheen, not speckles; a little less bright under the rims
-    m.bind(new THREE.Skeleton(sk.bones.map((b) => bones[b.name] || b), sk.boneInverses), m.bindMatrix);
+    m.bind(new THREE.Skeleton(sk.bones.map((b) => clothBone(b.name) || b), sk.boneInverses), m.bindMatrix);
     m.frustumCulled = false; m.castShadow = m.receiveShadow = true;
   }
   root.add(g.scene);
@@ -1751,7 +1764,7 @@ function setBrow(c) { face.brow = c; store.set('face', face); browTint.uBrowAmt.
 function setHead(m, f) { face.head = { male: m, female: f }; setMorph('headOnly_geo_blendShape.male', m); setMorph('headOnly_geo_blendShape.female', f); }
 function setBody(m, f) {
   face.body = { male: m, female: f }; setMorph(BODY_SHAPES[0], m); setMorph(BODY_SHAPES[1], f);
-  for (const g of shapedMeshes) { g.morphTargetInfluences[0] = m; g.morphTargetInfluences[1] = f; }
+  shapeClothes();
 }
 // Body type: Masculine is Xander as built; Feminine is Clementine (her body shape and textures, and her own gaits).
 const isFem = (t = face.bodyType) => t === 'feminine';
@@ -1769,8 +1782,9 @@ function withBodyType(t) {                                  // for a picture of 
 }
 // Hips: the Genies SDK's own HipSize body attribute (ChildJointRegionalized-BodyConfig, at its max), which scales the
 // hip, lower-waist and upper-thigh bind bones and sets the legs 2 cm further apart. (The SDK also angles the arms out
-// 8 degrees; that is left out, so every option keeps the arms exactly where the pose puts them.) Clothes are skinned
-// to the same bones, so they follow it the way they follow a walk; at 0 nothing is touched. Unity to three: glTF
+// 8 degrees; that is left out, so every option keeps the arms exactly where the pose puts them.) Clothes follow the
+// leg spread through the shared bones, and the scaled width through morph targets (see followBodyShape and clothBone),
+// so cloth moves exactly as far as the skin under it; at 0 nothing is touched. Unity to three: glTF
 // mirrors X, so a local scale carries over unchanged and a local position's x flips sign (Unity metres are
 // centimetres here: Root is scaled 0.01).
 const HIP_SIZE = [
@@ -1786,6 +1800,7 @@ function setHips(w) {
     if (j.scale) b.scale.set(1 + w * (j.scale[0] - 1), 1 + w * (j.scale[1] - 1), 1 + w * (j.scale[2] - 1));
     if (j.move) b.position.copy(rest[n].p).add(new THREE.Vector3(...j.move).multiplyScalar(w));
   }
+  shapeClothes();          // clothes skip the bone scales (clothBone) and take the skin's own Hips move instead
 }
 // Lightest to darkest. Walnut is Xander's own skin tone. Both bodies use his skin texture, so a tone looks the same on either.
 const SKIN_TONES = [['Porcelain', '#f3d6c4'], ['Ivory', '#eac0a0'], ['Sand', '#d9a47c'], ['Honey', '#c58a5d'], ['Caramel', '#a86c44'],
