@@ -4,7 +4,8 @@ Every image step in the pipeline is a job: a prompt, input images, and the file 
   codex       the Codex CLI (`codex exec`), billed to a ChatGPT plan: free per image. Used inside Codex, or anywhere
               the Codex CLI is installed and signed in.
   assethub    paid per image: GPT Image 2.5 on AssetHub (about 10 credits an image), with the person's own account.
-  higgsfield  paid per image: a GPT Image / Nano Banana model on Higgsfield, with the person's own account.
+  higgsfield  paid per image: a GPT Image / Nano Banana model on Higgsfield, with the person's own account (its
+              price is asked from Higgsfield and shown before spending).
 Chosen by `garment.py setup --images ...` (.anmaker/config.json 'images'), or the AN_IMAGES env var.
 
 For a paid provider the job is done here, without an agent: a one-image job becomes one call, with the input images
@@ -28,9 +29,28 @@ def backend():
     return os.environ.get('AN_IMAGES') or CFG.load().get('images') or 'codex'
 
 
+_HF_COST = None
+
+
 def cost_per_image(b=None):
+    """Credits per image: 0 with Codex; Higgsfield's own price for its image model (asked once), else an estimate."""
+    global _HF_COST
     b = b or backend()
-    return 0 if b == 'codex' else AH_COST if b == 'assethub' else 10
+    if b == 'codex':
+        return 0
+    if b == 'assethub':
+        return AH_COST
+    if _HF_COST is None:
+        _HF_COST = 10
+        try:
+            model = _hf_model()
+            _, _, txt = _cli('higgsfield', ['generate', 'cost', model, '--prompt', 'a plain grey t-shirt'], 120)
+            m = re.search(r'(\d+(?:\.\d+)?)\s*credits', txt)
+            if m:
+                _HF_COST = float(m.group(1))
+        except Exception:
+            pass
+    return _HF_COST
 
 
 def say(msg):

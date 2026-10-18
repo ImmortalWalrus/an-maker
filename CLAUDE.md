@@ -10,6 +10,10 @@ The garment pipeline for the AN Maker customizer (a Genies avatar dress-up page)
 - How the pipeline works and why: `docs/clothing-pipeline.md`.
 - Only tops, bottoms and outerwear (fitted or 3D-generated) are open to teammates. Hair, shoes, faces, makeup,
   expressions, animation and the page itself (`web/customizer/index.html`) are owner-only for now.
+- **The live site** is https://an-maker.pages.dev: the private repo ImmortalWalrus/an-maker-site, served free by
+  Cloudflare Pages (every push to main goes live in about a minute). The old Claude artifact is retired. Publish a
+  garment with `python pipeline/garment.py publish --key K`; publish page or engine changes with
+  `python pipeline/web/live_site.py publish --page web/customizer/index.html --files assets/... -m "..."`.
 - The git repo is the garment maker only (pipeline, docs, catalog, garment data). After a garment-maker change, commit
   and push so teammates get it on their next `python pipeline/garment.py update`, and add a line to `CHANGELOG.md`.
   Engine changes (the page and its assets) are NOT committed; the repo holds one frozen preview copy of the page

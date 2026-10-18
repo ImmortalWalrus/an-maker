@@ -1,58 +1,48 @@
 # Handing the garment maker to a teammate (owner checklist)
 
-## Once
+## How it fits together
 
-1. On github.com, create a **private** repository, for example `an-maker`, with no README.
-2. Put its address in `tools/repo.txt` (e.g. `https://github.com/ImmortalWalrus/an-maker.git`), then commit and push:
+| Piece | Where | Who can change it |
+|---|---|---|
+| Garment maker (pipeline, docs, catalog, garments) | private repo `ImmortalWalrus/an-maker` | owner; teammates push their saved garments |
+| The live site | private repo `ImmortalWalrus/an-maker-site`, served free by Cloudflare Pages at https://an-maker.pages.dev | every push to `main` goes live in about a minute |
+| Cloudflare Pages project `an-maker` | the owner's Cloudflare account (free plan) | owner only; nobody else needs a Cloudflare login |
 
-   ```
-   git add tools/repo.txt && git commit -m "repo address"
-   git remote add origin https://github.com/ImmortalWalrus/an-maker.git
-   git push -u origin main
-   ```
+The old Claude artifact (https://claude.ai/artifact/5dbuTk8EZot5Wb1QR261fN) is retired: nothing publishes there any
+more, and no Claude Share is needed.
 
-   (About 170 MB. Git opens a browser to sign in the first time.)
-3. Repository **Settings → Collaborators** → add the teammate's GitHub account. Give it write access, so their
-   `save` can push their garments.
-4. Publishing access (optional). On the AN Maker page, open **Share** and add the **email of their Claude account**
-   with **edit** access.
-   - Access belongs to the Claude account, not the coding tool. It works wherever they're signed in to Claude: Claude
-     Code desktop or CLI.
-   - Codex can't publish to a Claude page at all. With Codex they make and save garments, then publish by saying
-     *publish it* in Claude Code (if they have Claude), or you publish after `git pull`.
-   - Edit access technically allows any change to the page. What keeps them to garments is the assistant's rules plus
-     the teammate block-list that setup installs, so only grant it to people you trust. If Share offers no edit option
-     for their account (an organization setting), keep them view-only and publish yourself.
-5. On your own machine, run setup once as owner (no block-list):
-   `python pipeline/garment.py setup --name "<you>" --mesh assethub --max-credits 100 --publish yes --role owner`.
-6. Send them the message below.
+## Adding a teammate
+
+1. Repository **Settings → Collaborators → Add people** on **both** repos (`an-maker` and `an-maker-site`), with their
+   GitHub username or email. (Rick, `ricklancastermulti`, was invited to both on 2026-10-17.)
+2. Text them the repo link (below). That's all: setup does the rest, and doctor walks them through accepting the
+   second invite if they missed it.
+
+## Owner machine
+
+Run setup once as owner (no block-list, no install move):
+`python pipeline/garment.py setup --name "<you>" --mesh higgsfield --max-credits 100 --role owner`.
 
 ## Keep them updated
 
-Everything they run starts with `python pipeline/garment.py update`, which pulls whatever you've pushed. The repo is
-the **garment maker** only: the pipeline, its docs, the catalog and garment data. After you change those:
+Everything they run starts with `python pipeline/garment.py update`, which pulls whatever you've pushed to `an-maker`.
+That repo is the **garment maker** only: the pipeline, its docs, the catalog and garment data. After you change those:
 
 ```
 git add -A pipeline docs catalog CHANGELOG.md && git commit -m "..." && git push
 ```
 
-Add a line to `CHANGELOG.md`. They see it the next time they make something. Garments they save arrive in your copy on
-your next `git pull`. Run it before you publish, so the export includes theirs.
+Add a line to `CHANGELOG.md`; they see it the next time they make something. Garments they save arrive in your copy on
+your next `git pull`.
 
-The **engine** (the AN Maker page and its assets) is not logged here. The repo keeps one frozen copy of it
-(`web/customizer/index.html` and the page's assets) only so the teammate's local preview runs. Publishing always uses
-the live page, so the frozen copy never reaches the site. Refresh it only if previews ever stop matching the site
-(for example after a change to how garments load): commit the current page as "preview snapshot refresh".
+**Engine / page changes** (index.html, the renderer, UI, animations) are not committed to `an-maker`. They go live
+with `python pipeline/web/live_site.py publish --page web/customizer/index.html --files assets/... -m "..."`, which
+pushes to `an-maker-site`. The `an-maker` repo keeps one frozen copy of the page only so local previews run; refresh it
+if previews ever stop matching the site.
 
-## The message to send
+## The text to send
 
-> Hey Rick! Here's the AN Maker garment maker.
-> 1. Accept the GitHub invite, then open https://github.com/ImmortalWalrus/an-maker → green **Code** button →
->    **Download ZIP**.
-> 2. Open Claude Code (or Codex) and switch the mode at the bottom left to **Bypass permissions** (Codex: **Full
->    access**). The README has a picture.
-> 3. Drag the zip into the chat and type **set me up**. It asks a few quick questions and installs everything itself.
->    Sign in to your own accounts when it asks, and never paste passwords into the chat.
-> 4. Then just ask for clothes: *"make me a Moncler-style puffer"*, *"pink camo leggings"*, or drop in a picture.
->    Tops, bottoms and jackets only for now.
-> It updates itself every time you use it.
+> Here u go https://github.com/ImmortalWalrus/an-maker
+
+(Accept the GitHub invite it shows, then the README on that page says the rest: download the zip, switch the
+assistant to Bypass permissions / Full access, drop the zip in, type "set me up".)

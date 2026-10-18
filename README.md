@@ -37,7 +37,7 @@ and put live on AN Maker when you say so.</p>
 
 ```mermaid
 flowchart TD
-    Z["📦 zip dropped in the chat: <b>set me up</b>"] --> Q["💬 5 quick questions"]
+    Z["📦 zip dropped in the chat: <b>set me up</b>"] --> Q["💬 4 quick questions"]
     Q --> I["🛠️ installs itself and every tool it needs"]
     I --> S["🔑 you sign in, in your own browser"]
     S --> L["🔗 linked to GitHub for automatic updates"]
@@ -48,10 +48,9 @@ flowchart TD
 **The questions** (one at a time, each with a sensible default):
 
 1. Your name, for credits on what you make.
-2. Which 3D account to use for loose clothes: **AssetHub** (recommended), **Higgsfield**, or none for now.
+2. Which 3D account to use for loose clothes: **Higgsfield**, or none for now.
 3. A spending limit per garment (default 50 credits).
-4. Whether the owner gave you publish access to the AN Maker page.
-5. *Only if needed:* whether you have a ChatGPT plan, for free drawings through Codex. Inside Codex it already knows.
+4. *Only if needed:* whether you have a ChatGPT plan, for free drawings through Codex. Inside Codex it already knows.
 
 **It installs everything itself.** Nothing for you to download:
 
@@ -60,7 +59,7 @@ flowchart TD
 | Python | runs the pipeline | `winget`, just for you (no admin) |
 | Blender 5.2 LTS | builds, fits and scans the 3D garments | portable copy from blender.org, no admin |
 | Git | automatic updates | `winget` (Windows may ask once: click **Yes**) |
-| Node.js + Codex / AssetHub / Higgsfield tools | drawings and 3D models | `winget` + `npm`, only the ones your answers need |
+| Node.js + Codex / Higgsfield tools | drawings and 3D models | `winget` + `npm`, only the ones your answers need |
 
 **The only thing you do by hand is sign in**, in your own browser or your own PowerShell window. Never paste a
 password or key into the chat: the assistant will never ask you to.
@@ -90,7 +89,7 @@ flowchart TD
     B -- "tee · tank · crop top<br/>leggings · capris · shorts" --> T["🎨 fabric prints drawn<br/>garment built from the body itself"]
     B -- "hoodie · puffer · jacket<br/>sweats · cargos · jeans" --> D["✏️ drawn on the avatar<br/>front · left · back · right"]
     D --> C2["🔍 2D checks: cuffs, hems, cover<br/>(free redraws)"]
-    C2 --> M["🧊 3D model, about 25 credits a try"]
+    C2 --> M["🧊 3D model, about 18 credits a try"]
     M --> F["📐 aligned to all 4 drawings<br/>fitted to the skeleton"]
     T --> MRI["🩻 MRI scan + inspection<br/>alone and with other clothes<br/>(a fault rebuilds it automatically)"]
     F --> MRI
@@ -101,7 +100,14 @@ flowchart TD
 ```
 
 Brands are always **parodies**: Moncler becomes MONCHILL, Champion becomes CHAMPIGNON, Lululemon becomes lululemur.
-Logos are drawn separately and baked on crisp, never garbled.
+
+**Realistic textures, every time.**
+- **Fitted pieces** use the exact recipe behind the Y2K Butterfly tank and the leggings:
+  - the print is drawn as flat fabric yardage, with a separate chest graphic, and upscaled;
+  - it gets a real knit normal map and roughness, so it reads as cotton jersey or stretch fabric, not plastic.
+- **3D pieces** keep the 3D model's own full-resolution texture (2048 px), gently sharpened.
+- **Logos** are drawn separately and baked on crisp, never garbled: a garbled generated logo is redrawn in place, or
+  a patch is added on the sleeve.
 
 ## The MRI scan
 
@@ -128,13 +134,13 @@ hand-edited: what you see is what was generated.
 
 The assistant always tells you the cost **before** it spends anything, and never goes over your limit without asking.
 
-| What | Drawings with Codex (ChatGPT plan) | Drawings paid per image | 3D model |
+| What | Drawings with Codex (ChatGPT plan) | Drawings on Higgsfield (paid per image) | 3D model (Higgsfield) |
 |---|---|---|---|
-| Fitted tee, tank, crop top | free | about 30 credits | none |
-| Leggings, capris, bike shorts | free | about 10 credits | none |
-| Loose 3D garment (hoodie, puffer, sweats…) | free | about 80 credits | about 25 credits a try, usually 1-2 |
-| Change a print, colour or logo | free | about 10 credits per image | none |
-| Change a 3D garment's shape or look | free | about 80 credits | a new 3D model, about 25 credits a try |
+| Fitted tee, tank, crop top | free | about 3 images | none |
+| Leggings, capris, bike shorts | free | 1 image | none |
+| Loose 3D garment (hoodie, puffer, sweats…) | free | about 8 images | about 18 credits a try, usually 1-2 |
+| Change a print, colour or logo | free | 1-3 images | none |
+| Change a 3D garment's shape or look | free | about 8 images | a new 3D model, about 18 credits a try |
 
 ## Always asked, never auto-published
 
@@ -143,10 +149,11 @@ When a garment is done, the assistant shows it to you in the preview and **alway
 > **"Is it good to publish, or would you like any changes?"**
 
 - **Changes?** Say what you'd like. It tells you what it costs, then rebuilds.
-- **Happy?** Say **publish it**. It saves your garment to GitHub and puts it live on the AN Maker page.
+- **Happy?** Say **publish it**. It saves your garment and puts it live on **[an-maker.pages.dev](https://an-maker.pages.dev)**
+  in about a minute.
 
-Publishing needs Claude Code and publish access from the owner. In Codex, or without access, your garment is saved
-and the owner publishes it for you.
+Publishing works the same from Claude Code or Codex, and it's free: the site is a private GitHub repo that Cloudflare
+Pages serves, so publishing is just a push. It only ever sends your garment's files, never the page itself.
 
 ## The wardrobe so far
 
@@ -179,6 +186,7 @@ You never need to type these: the assistant runs them. They are listed here so y
 | `python pipeline/garment.py image …` | one image with whichever image provider this PC uses |
 | `python pipeline/garment.py export` / `preview` | rebuilds the wardrobe and shows it at http://localhost:8765 |
 | `python pipeline/garment.py save --key …` | saves your garment to GitHub for the owner |
+| `python pipeline/garment.py publish --key …` | puts it live on an-maker.pages.dev (only when you say *publish it*) |
 
 The assistant's full playbook is [`docs/garment-agent.md`](docs/garment-agent.md). How the pipeline works and why:
 [`docs/clothing-pipeline.md`](docs/clothing-pipeline.md).
@@ -201,5 +209,5 @@ Type `set me up from` followed by where the zip is, for example
 <details>
 <summary>For the owner</summary>
 
-Adding a teammate, publish access and keeping them updated: [`docs/handoff.md`](docs/handoff.md).
+Adding a teammate, the site (Cloudflare Pages, free) and keeping them updated: [`docs/handoff.md`](docs/handoff.md).
 </details>

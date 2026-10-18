@@ -17,6 +17,7 @@ brief; this script runs every mechanical step, the same way each time, and stops
   export    rebuild the customizer's files (web/customizer/assets) from the catalog; lists what changed
   preview   serve web/customizer on http://localhost:8765 to look at the result
   save      --key K   commit the new piece and push it, so the other machine gets it
+  publish   --key K   put it live: push its files to the site repo (Cloudflare Pages, free); only on an explicit "publish"
 
 Run from anywhere: python pipeline/garment.py <command> ...
 """
@@ -291,6 +292,13 @@ def cmd_doctor(a):
                 print(f'  [!!] only {cr:g} credits: a 3D garment needs about {S4.cost_per_mesh()} per try - top up first')
     line(shutil.which('git'), 'git (for updates)', 'run setup again (it installs Git)')
     line((ROOT / '.git').exists(), 'linked to GitHub for updates', 'python pipeline/garment.py update')
+    site = ROOT / 'tools' / 'site_repo.txt'
+    if site.exists() and shutil.which('git'):
+        url = site.read_text(encoding='utf-8').strip()
+        ok_site = subprocess.run(['git', 'ls-remote', '--exit-code', url, 'HEAD'], capture_output=True,
+                                 timeout=120).returncode == 0
+        line(ok_site, 'can publish to the site (an-maker-site repo)',
+             'accept the invite: ' + url.replace('.git', '') + '/invitations  (then run doctor again)')
     line(len(str(ROOT)) <= 60, f'folder path is short enough ({len(str(ROOT))} characters)',
          r'Windows limits paths to 260 characters: run setup again: it installs to %USERPROFILE%\an-maker')
     need = [ROOT / 'Bases' / 'Xander.blend', ROOT / 'Bases' / 'Xander.json']
@@ -444,6 +452,8 @@ def cmd_generated(a):
     py('gate.py', *gate_args, env=env, stream=True)
     if a.badge_art:
         bake_badge(a.key, out, a.badge_art, a.badge_place)
+    else:
+        finish_textures(a.key, out)
     looks = [(f'web-{a.key}', [spec]), (f'{gate_look}-{a.key}', pieces)] + [(f'combo-{a.key}-{n}', p) for n, p in extra.items()]
     fails = [f for look, p in looks for f in inspect(look, p)]
     catalog.add(spec, 'generated', a.label, 55, c.get('name', ''))
@@ -457,6 +467,12 @@ def cmd_generated(a):
 
 def bake_badge(key, out, art, place):
     py('decal_bake.py', '--outfit', out.relative_to(ROOT), '--key', key, '--decal', art, '--place', place)
+    finish_textures(key, out)
+
+
+def finish_textures(key, out):
+    """Every 3D piece ships its full-resolution colour map, gently sharpened (texture_finish.py), then refits."""
+    py('texture_finish.py', '--outfit', out.relative_to(ROOT), '--key', key)
     blender('s6_fit.py', out, 'Xander')
 
 
@@ -538,6 +554,45 @@ def cmd_preview(a):
         s.serve_forever()
 
 
+def cmd_publish(a):
+    """Put a garment live: rebuild the wardrobe, then push the changed files to the site repo (Cloudflare Pages serves
+    it, free). Sends only this garment's files, the manifest and the body (its skin masks); never the page itself, and
+    never another garment's files."""
+    c = cfg()
+    e = next((e for e in catalog.entries() if e['spec'].endswith(':' + a.key)), None)
+    if not e:
+        stop(f'{a.key} is not in the wardrobe')
+    cmd_update(a)                                               # the newest pipeline and the other person's garments
+    cmd_export(a)
+    sys.path.insert(0, str(ROOT / 'pipeline' / 'web'))
+    import live_site as SITE
+    SITE.checkout()
+    files, skipped = [], []
+    for f in sorted((WEB / 'assets').rglob('*')):
+        if f.is_dir() or f.suffix == '.glb' or not f.name.startswith(WEB_OWNED):
+            continue
+        rel = 'assets/' + f.relative_to(WEB / 'assets').as_posix()
+        live = SITE.SITE / rel
+        if live.exists() and filecmp.cmp(f, live, shallow=False):
+            continue
+        mine = not f.name.startswith('piece_') or f.name.startswith((f'piece_{a.key}.', f'piece_{a.key}_'))
+        (files if mine else skipped).append(rel)
+    if skipped:
+        say(f'left alone (another garment, differs from the live site): {", ".join(skipped[:6])}'
+            + (' ...' if len(skipped) > 6 else ''))
+    if not files:
+        say(f'{e["label"]} is already live')
+        return
+    say(f'publishing {e["label"]}: {len(files)} files' + ('' if not a.dry_run else ' (dry run: nothing sent)'))
+    for f_ in files:
+        print('   ', f_)
+    if a.dry_run:
+        return
+    sha = SITE.publish(files, None, f'Publish {e["label"]} ({a.key}) by {c.get("name", "?")}', who=c.get('name', ''))
+    if sha and SITE.live_url():
+        SITE.wait_live('assets/manifest.json', WEB / 'assets' / 'manifest.json')
+
+
 def cmd_save(a):
     c = cfg()
     if not (ROOT / '.git').exists():
@@ -568,7 +623,7 @@ def main():
     s.add_argument('--name', required=True)
     s.add_argument('--mesh', choices=['assethub', 'higgsfield', 'none'], required=True)
     s.add_argument('--max-credits', type=int, default=50)
-    s.add_argument('--publish', choices=['yes', 'no'], default='no')
+    s.add_argument('--publish', choices=['yes', 'no'], default='yes', help='(kept for old setups; everyone can publish now)')
     s.add_argument('--blender', default='')
     s.add_argument('--role', choices=['teammate', 'owner'], default='teammate')
     s.add_argument('--images', choices=['auto', 'codex', 'assethub', 'higgsfield'], default='auto',
@@ -604,10 +659,12 @@ def main():
     s.add_argument('--ref', action='append', default=[]); s.add_argument('--size', default='')
     s.add_argument('--transparent', action='store_true')
     s = sub.add_parser('save'); s.add_argument('--key', required=True)
+    s = sub.add_parser('publish'); s.add_argument('--key', required=True)
+    s.add_argument('--dry-run', action='store_true', help='list what would be sent, send nothing')
     a = ap.parse_args()
     {'setup': cmd_setup, 'doctor': cmd_doctor, 'update': cmd_update, 'shell-top': cmd_shell_top,
      'shell-bottom': cmd_shell_bottom, 'generated': cmd_generated, 'emblem': cmd_emblem, 'badge': cmd_badge, 'remove': cmd_remove,
-     'export': cmd_export, 'preview': cmd_preview, 'save': cmd_save, 'image': cmd_image}[a.cmd](a)
+     'export': cmd_export, 'preview': cmd_preview, 'save': cmd_save, 'image': cmd_image, 'publish': cmd_publish}[a.cmd](a)
 
 
 if __name__ == '__main__':

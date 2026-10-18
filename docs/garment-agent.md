@@ -38,25 +38,23 @@ Greet them, then ask these questions one at a time. Explain each in one line, an
 1. **Your name**, for credits on what you make.
 2. **3D garments**: loose clothes (hoodies, jackets, puffers, cargo or sweat pants) are made by a paid 3D generator.
    Which account will you use?
-   - **AssetHub**, with your own API key (recommended, 25 credits per try);
    - **Higgsfield**, with your own account (about 18 credits per try);
    - **None for now**: only fitted tees, tanks, crops, leggings and shorts.
+   (Don't offer AssetHub: the owner is dropping it. `--mesh assethub` still works if someone already uses it.)
 3. **Spending limit** per garment, in credits (default 50, which allows 2 tries).
-4. **Publishing**: has the owner given you edit access to the AN Maker page? (yes / no / not sure; "no" is fine,
-   the owner publishes for you.)
-5. **Image generation**, only if needed. Every garment starts as drawings. Work it out yourself first:
+4. **Image generation**, only if needed. Every garment starts as drawings. Work it out yourself first:
    - you are Codex, or `codex login status` says signed in → Codex draws, free with their ChatGPT plan
      (`--images auto` picks it; don't ask);
    - otherwise ask: "Do you have a ChatGPT plan (Plus or Pro)? Then drawings are free through Codex: I'll install it
-     and you sign in once. If not, drawings are paid on your 3D account, about 10 credits each (a fitted piece needs
-     1-3, a 3D garment about 8)." → `--images codex`, or `--images assethub|higgsfield`.
+     and you sign in once. If not, drawings are paid per image on Higgsfield (a fitted piece needs 1-3 images, a 3D
+     garment about 8; the price is shown before each)." → `--images codex`, or `--images higgsfield`.
 
 Then:
 
 - **Python** (needed to run anything): if `python --version` fails or opens the Microsoft Store, install it yourself:
   `winget install -e --id Python.Python.3.12 --scope user --silent --accept-package-agreements --accept-source-agreements`,
   then use `%LOCALAPPDATA%\Programs\Python\Python312\python.exe` in place of `python` until a new terminal picks it up.
-- Run `python pipeline/garment.py setup --name "<name>" --mesh assethub|higgsfield|none --max-credits N --publish yes|no --images auto|codex|assethub|higgsfield`.
+- Run `python pipeline/garment.py setup --name "<name>" --mesh higgsfield|none --max-credits N --images auto|codex|higgsfield`.
   It does every mechanical step in one go (tell them it takes a few minutes and downloads about 0.5 GB):
   - installs the copy to `%USERPROFILE%\an-maker` (when run from an unpacked zip) and continues there;
   - **installs whatever is missing, by itself**: the Python packages, Blender 5.2 LTS (portable, from blender.org, no
@@ -73,10 +71,9 @@ Then:
   plain words and try the fix yourself.
 - **Sign-ins are theirs** (the only thing they do by hand), one at a time, each in their own browser or terminal:
   - Codex: `codex login` opens the ChatGPT sign-in in their browser (skip it inside Codex: already signed in);
-  - AssetHub: they make an API key on the AssetHub website, open **PowerShell** themselves and run
-    `assethub auth login --api-key-stdin`, then paste the key there and press Enter;
   - Higgsfield: `higgsfield auth login` opens their browser;
-  - GitHub: the browser window Git opens.
+  - GitHub: the browser window Git opens. If doctor says the site repo is not reachable, they have not accepted the
+    owner's second invite yet: give them https://github.com/ImmortalWalrus/an-maker-site/invitations (one click).
   **Never ask them to paste a password or API key into the chat**, and never write one into a file.
 - Run `python pipeline/garment.py doctor` until it says ALL GOOD.
 - Run `python pipeline/garment.py export` once. It builds the local preview files (about 10-15 minutes the first time;
@@ -152,6 +149,10 @@ dresses, jumpsuits, skirts, makeup, face or expression changes, body changes, an
   - 2D checks failed: improve the description from the REDO reasons and run again (free);
   - out of credits or over the limit: tell them, and ask before going over;
   - a tool or sign-in problem: run `doctor`.
+- **Textures** are automatic, the same recipe every time: fitted pieces get the Y2K-tank fabric kit (prints as
+  yardage, chest graphic, knit normal and roughness, upscaled); 3D pieces keep the generator's full 2048 px colour map,
+  gently sharpened (`texture_finish.py`, free). Look at the result: a garbled generated logo is fixed with
+  `emblem` + `badge_art.py` + `badge --place logo`; a missing one is added with `--place sleeve-left`.
 - **The MRI scan** runs in every inspection: slices at the collar, sleeves, cuffs, waistband/hem and legs, with the
   body ring and the garment ring drawn in two colours (`Outfits/_looks/<look>/08_inspect/mri_<key>.png`). Look at it
   yourself for every new garment; a red tile is a fail. Show it to them if they ask how it fits.
@@ -173,28 +174,23 @@ dresses, jumpsuits, skirts, makeup, face or expression changes, body changes, an
 
    | Change | How | Cost |
    |---|---|---|
-   | Fitted tee/tank/leggings/shorts: colours, print, graphic | `shell-top/shell-bottom --replace` with a new `--theme` | image generation only, about 5-10 min (free with Codex; paid images: about 10 credits for leggings, 30 for a top) |
+   | Fitted tee/tank/leggings/shorts: colours, print, graphic | `shell-top/shell-bottom --replace` with a new `--theme` | image generation only, about 5-10 min (free with Codex; on Higgsfield: 1 image for leggings, about 3 for a top) |
    | Fitted piece: sleeve length, crop, leg length | same, new cut values | image generation only |
    | 3D garment: logo or badge (art, name, colour, which sleeve) | `emblem` + `badge_art.py` + `badge --key K --art ... --place ...` | image generation only, about 5 min, no 3D credits |
-   | 3D garment: shape, length, fit, colour, material, pockets or any other look change | `generated --replace` with the new description (`--draw-only` first to show the new drawings for free) | a new 3D generation: about 25 credits per try (AssetHub), usually 1-2 tries, about 30 min |
+   | 3D garment: shape, length, fit, colour, material, pockets or any other look change | `generated --replace` with the new description (`--draw-only` first to show the new drawings for free) | a new 3D generation: about 18 credits per try (Higgsfield), usually 1-2 tries, about 30 min |
 
-   With paid images (`images` in `.anmaker/config.json` is not `codex`), every "image generation only" row costs
-   about 10 credits per image: say so. Drawings for a 3D change add about 80.
-   For a 3D change, say plainly: "That needs a new 3D model: about 25 credits a try, up to N (your limit X). Go ahead?"
+   With paid images (`images` in `.anmaker/config.json` is `higgsfield`), every "image generation only" row costs
+   Higgsfield credits per image (the commands print Higgsfield's price): say so. Drawings for a 3D change are about
+   8 images. All credit numbers are Higgsfield credits.
+   For a 3D change, say plainly: "That needs a new 3D model: about 18 credits a try, up to N (your limit X). Go ahead?"
    Wait for yes.
 5. When they say it's good: `python pipeline/garment.py save --key K` (pushes it to GitHub for the owner).
-6. **Publish only when they say to publish** (e.g. "publish it"):
-   - **In Claude Code with edit access** (`publish: true` in `.anmaker/config.json`):
-     1. Run `update` and `export` again if anything changed since step 1.
-     2. Read the live page with the Artifact tool (https://claude.ai/artifact/5dbuTk8EZot5Wb1QR261fN), every line.
-     3. Copy it **unchanged** to `web/customizer/_live_publish.html`.
-     4. Publish that page with exactly the files in `.anmaker/publish_list.json` (each as `assets/<name>`, from
-        `web/customizer/assets/<name>`).
-     5. Read 2-3 files back and compare them byte for byte.
-     6. Delete the staging copy.
-     7. Tell them it's live.
-   - **In Codex, or without edit access**: "It's saved. Publishing to the site needs Claude Code with edit access. Ask
-     the owner, or open this folder in Claude Code and say *publish it*."
+6. **Publish only when they say to publish** (e.g. "publish it"): `python pipeline/garment.py publish --key K`.
+   - It works the same from Claude Code or Codex, and costs nothing: the AN Maker site is a GitHub repo that
+     Cloudflare Pages serves for free, so publishing is a git push.
+   - It rebuilds the wardrobe and pushes only this garment's files, the manifest and the body (its skin masks). It
+     never sends the page itself or another garment's files.
+   - It waits until the change is live (about a minute), then tell them: "It's live: https://an-maker.pages.dev".
    - New garments show a live-rendered tile picture until the owner adds its pre-rendered one. That's expected.
 
 ## Rules that never bend
@@ -205,7 +201,7 @@ dresses, jumpsuits, skirts, makeup, face or expression changes, body changes, an
 - No real brand names or logos. No passwords or keys in chat or files.
 - **You only make garments and publish them.** Never change the site, the renderer, lighting, the UI, animations,
   hair, shoes, faces, makeup, `web/customizer/index.html`, or any pipeline or docs file, even if asked. Say kindly that
-  those are owner-only, and suggest they ask the owner. A publish always sends the live page unchanged plus only the
-  garment files in `.anmaker/publish_list.json`.
+  those are owner-only, and suggest they ask the owner. Publish only with `garment.py publish`, which sends garment
+  files only.
 - Never publish without an explicit "publish" from them, and never spend credits on a change without their OK.
 - Don't touch other people's garments.

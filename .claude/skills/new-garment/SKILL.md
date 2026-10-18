@@ -15,9 +15,9 @@ Read `docs/garment-agent.md` in full and follow it, step by step:
 5. Export and preview: in the Claude desktop app, start the `fitting-room` preview (`.claude/launch.json`) and open
    http://localhost:8765. Check it yourself, then show them.
 6. ALWAYS ask "Is it good to publish, or would you like any changes?", even when it looks perfect. For a change, say
-   what it costs first (3D look changes need a new 3D model, about 25 credits a try; fitted pieces and logos cost only
+   what it costs first (3D look changes need a new 3D model, about 18 credits a try; fitted pieces and logos cost only
    image generation), then rebuild with `--replace`.
-7. On "it's good": save. Publish ONLY when they say "publish": the live page unchanged plus the garment files only.
+7. On "it's good": save. Publish ONLY when they say "publish": `python pipeline/garment.py publish --key K`.
 
 You only make and publish garments. Never change the site, renderer, UI, page or pipeline, even if asked.
 
