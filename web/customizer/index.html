@@ -981,6 +981,7 @@ function fitHems(shown) {
     si.array.set(m.userData.hem.si); sw.array.set(m.userData.hem.sw);
     hemFollowsLegs(m, sampler);
     si.needsUpdate = true; sw.needsUpdate = true;
+    hipMorph(m);                                            // the Hips correction depends on the hem's weights
     m.userData.hemFor = keyB;
   }
 }
@@ -1058,10 +1059,11 @@ function hemFollowsLegs(m, sampler) {
 // over half the vertex's distance from the skin, so loose folds cannot kink. Stored as morph targets driven with the
 // body's: at 0 every piece is exactly as generated. Pieces the shapes never reach (hair, shoes) get no morph targets.
 // Worked out in short slices after a piece loads, so the page never stalls.
-// Hips works the same way. Its bone scales would push loose cloth out in proportion to its distance from the bone (a
-// puffer hem grew twice as far as the seat under it, and tee hems flared with a kink at the side), so clothes are bound
-// to unscaled stand-ins of those bones (clothBone) and get the skin's own Hips move instead, on the plain body and on
-// the feminine one.
+// Hips: clothes stay on the avatar's (scaled) bones, which is exact for cloth lying on the skin in any pose, but a bone
+// scale pushes loose cloth out in proportion to its distance from the bone (a puffer hem moved twice as far as the seat
+// under it; tee hems flared with a kink at the side). So the skin's own Hips move is worked out here too, and a
+// correction morph (hipMorph) makes each cloth vertex land, in the fit pose, exactly where that move puts it: about
+// zero for tight cloth, pulling loose hems back to follow the body. On the plain body and on the feminine one.
 const BODY_SHAPES = ['bodyOnly_geo_blendShape.male', 'bodyOnly_geo_blendShape.female'];
 const CLOTH_SHAPES = [...BODY_SHAPES, 'hips', 'hips.female'];
 const shapedMeshes = [];
@@ -1069,18 +1071,33 @@ function shapeClothes(list = shapedMeshes) {
   const f = face.body?.female || 0, h = face.hips || 0, amt = [face.body?.male || 0, f, h * (1 - f), h * f];
   for (const g of list) CLOTH_SHAPES.forEach((s, k) => { g.morphTargetInfluences[k] = amt[k]; });
 }
-const clothBones = {};
-function clothBone(name) {                                        // the avatar's bone, or an unscaled stand-in for a Hips-scaled one
-  const b = bones[name];
-  if (!b || !HIP_SIZE.some(([n, j]) => n === name && j.scale)) return b;
-  if (!clothBones[name]) {
-    const s = new THREE.Bone();
-    s.name = name;
-    s.updateMatrix = function () { this.position.copy(b.position); this.quaternion.copy(b.quaternion); this.scale.set(1, 1, 1); THREE.Object3D.prototype.updateMatrix.call(this); };
-    b.parent.add(s);
-    clothBones[name] = s;
+// The Hips correction morphs of one piece, from the skin's Hips move kept by followBodyShape. With its current weights
+// (they change when a top's hem is refitted to new trousers, so fitHems calls this again), the piece's own bones at
+// full Hips map a fit-pose vertex x to Ms x; the morph d puts it on target: Ms (x + d) = x + move, so d = Ms^-1 (x + move) - x.
+function hipMorph(m) {
+  const u = m.userData.hipsMove, A = m.geometry.morphAttributes.position;
+  if (!u || !A || A.length < 4) return;
+  const g = m.geometry, sk = m.skeleton, si = g.getAttribute('skinIndex'), sw = g.getAttribute('skinWeight'), P = g.getAttribute('position');
+  const scaled = Object.fromEntries(HIP_SIZE.filter(([, j]) => j.scale).map(([n, j]) => [n, new THREE.Matrix4().makeScale(...j.scale)]));
+  const B = sk.bones.map((b, i) => scaled[b.name] ? sk.boneInverses[i].clone().invert().multiply(scaled[b.name]).multiply(sk.boneInverses[i]) : null);
+  const inv = new THREE.Matrix3().setFromMatrix4(m.bindMatrix).invert(), Ms = new THREE.Matrix4(), x = new THREE.Vector3(), t = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) {
+    const e = Ms.elements; e.fill(0);
+    for (let k = 0; k < 4; k++) {
+      const w = sw.getComponent(i, k); if (!w) continue;
+      const b = B[si.getComponent(i, k)];
+      if (b) for (let j = 0; j < 16; j++) e[j] += w * b.elements[j]; else { e[0] += w; e[5] += w; e[10] += w; e[15] += w; }
+    }
+    Ms.invert();
+    for (let s = 0; s < 2; s++) {                                 // plain body, feminine body
+      x.fromBufferAttribute(P, i).applyMatrix4(m.bindMatrix);
+      if (s) x.x += u.fem[i * 3], x.y += u.fem[i * 3 + 1], x.z += u.fem[i * 3 + 2];
+      t.set(x.x + u.hips[s][i * 3], x.y + u.hips[s][i * 3 + 1], x.z + u.hips[s][i * 3 + 2]).applyMatrix4(Ms).sub(x).applyMatrix3(inv);
+      A[2 + s].setXYZ(i, t.x, t.y, t.z);
+    }
   }
-  return clothBones[name];
+  A[2].needsUpdate = A[3].needsUpdate = true;
+  g.dispose();                                                    // the morph texture is rebuilt on the next frame
 }
 let shapeQueue = Promise.resolve();                               // pieces are shaped one at a time, in the background
 const queueBodyShape = (m) => { shapeQueue = shapeQueue.then(() => followBodyShape(m)).catch((e) => console.warn('body shape:', e)); };
@@ -1222,6 +1239,7 @@ async function followBodyShape(m) {
   const gc = 0.02, near = new Map();
   for (let i = 0; i < n; i++) { const kk = cellKey(Math.floor(W[i * 3] / gc), Math.floor(W[i * 3 + 1] / gc), Math.floor(W[i * 3 + 2] / gc)); (near.get(kk) || near.set(kk, []).get(kk)).push(i); }
   const K = CLOTH_SHAPES.length * 3, out = CLOTH_SHAPES.map(() => new Float32Array(n * 3)), inv = new THREE.Matrix3().setFromMatrix4(m.bindMatrix).invert(), acc = new Array(K).fill(0);
+  const moves = CLOTH_SHAPES.map(() => new Float32Array(n * 3));   // the same moves in the fit-pose frame, for hipMorph
   let most = 0;
   for (let i = 0; i < n; i++) {
     if (!(i & 255)) await breathe();
@@ -1240,12 +1258,14 @@ async function followBodyShape(m) {
       }
       for (let k = 0; k < K; k++) acc[k] /= ws;
     }
-    out.forEach((o, s2) => { v.set(acc[s2 * 3], acc[s2 * 3 + 1], acc[s2 * 3 + 2]); most = Math.max(most, v.length()); v.applyMatrix3(inv).toArray(o, i * 3); });
+    out.forEach((o, s2) => { v.set(acc[s2 * 3], acc[s2 * 3 + 1], acc[s2 * 3 + 2]); v.toArray(moves[s2], i * 3); most = Math.max(most, v.length()); v.applyMatrix3(inv).toArray(o, i * 3); });
   }
   if (most < 1e-5) return;                                        // untouched by the shapes (hair, shoes)
   g.morphAttributes.position = out.map((a, s) => Object.assign(new THREE.BufferAttribute(a, 3), { name: CLOTH_SHAPES[s] }));
   g.morphTargetsRelative = true;
   m.updateMorphTargets();
+  m.userData.hipsMove = { fem: moves[1], hips: [moves[2], moves[3]] };
+  hipMorph(m);
   shapeClothes([m]);
   shapedMeshes.push(m);
   console.info(`${m.name}: follows the body shape (up to ${(most * 1000).toFixed(1)} mm)`);
@@ -1315,7 +1335,7 @@ async function loadPiece(key) {
     if (p.slot === 'hair') { clampSpecular(m.material, 0.8); dimRectLight(m, backBox, 0.1); }   // light linking: the face's side-back light barely touches the hair (no hot glints)
     if (p.slot === 'footwear') { clampSpecular(m.material, 0.18); }   // the key's glint and its hot diffuse on the toe box stay soft
     if (p.slot === 'footwear') { m.material.roughness = 0.56; m.material.envMapIntensity = 0.13; m.material.emissive.set(0x1e2536); m.material.normalScale.multiplyScalar(0.5); }   // leather: one broad soft sheen, not speckles; a little less bright under the rims
-    m.bind(new THREE.Skeleton(sk.bones.map((b) => clothBone(b.name) || b), sk.boneInverses), m.bindMatrix);
+    m.bind(new THREE.Skeleton(sk.bones.map((b) => bones[b.name] || b), sk.boneInverses), m.bindMatrix);
     m.frustumCulled = false; m.castShadow = m.receiveShadow = true;
   }
   root.add(g.scene);
@@ -1782,9 +1802,9 @@ function withBodyType(t) {                                  // for a picture of 
 }
 // Hips: the Genies SDK's own HipSize body attribute (ChildJointRegionalized-BodyConfig, at its max), which scales the
 // hip, lower-waist and upper-thigh bind bones and sets the legs 2 cm further apart. (The SDK also angles the arms out
-// 8 degrees; that is left out, so every option keeps the arms exactly where the pose puts them.) Clothes follow the
-// leg spread through the shared bones, and the scaled width through morph targets (see followBodyShape and clothBone),
-// so cloth moves exactly as far as the skin under it; at 0 nothing is touched. Unity to three: glTF
+// 8 degrees; that is left out, so every option keeps the arms exactly where the pose puts them.) Clothes are skinned
+// to the same bones, plus a correction morph (hipMorph) so loose cloth moves as far as the skin under it, not further;
+// at 0 nothing is touched. Unity to three: glTF
 // mirrors X, so a local scale carries over unchanged and a local position's x flips sign (Unity metres are
 // centimetres here: Root is scaled 0.01).
 const HIP_SIZE = [
@@ -1800,7 +1820,7 @@ function setHips(w) {
     if (j.scale) b.scale.set(1 + w * (j.scale[0] - 1), 1 + w * (j.scale[1] - 1), 1 + w * (j.scale[2] - 1));
     if (j.move) b.position.copy(rest[n].p).add(new THREE.Vector3(...j.move).multiplyScalar(w));
   }
-  shapeClothes();          // clothes skip the bone scales (clothBone) and take the skin's own Hips move instead
+  shapeClothes();          // the clothes' Hips correction morphs (hipMorph)
 }
 // Lightest to darkest. Walnut is Xander's own skin tone. Both bodies use his skin texture, so a tone looks the same on either.
 const SKIN_TONES = [['Porcelain', '#f3d6c4'], ['Ivory', '#eac0a0'], ['Sand', '#d9a47c'], ['Honey', '#c58a5d'], ['Caramel', '#a86c44'],

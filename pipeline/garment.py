@@ -399,7 +399,8 @@ def cmd_save(a):
     if not e:
         stop(f'{a.key} is not in the catalog')
     outfit = e['spec'].split(':')[0]
-    paths = [f'catalog/pieces/{a.key}.json', f'Outfits/{outfit}/06_fitted', f'Outfits/{outfit}/outfit.json',
+    fitted = [str(f.relative_to(ROOT)) for f in (OUT / outfit / '06_fitted').glob('*') if f.suffix in ('.glb', '.json')]
+    paths = [f'catalog/pieces/{a.key}.json', *fitted, f'Outfits/{outfit}/outfit.json',
              f'Outfits/{outfit}/04_meshes/{a.key}_tex', f'Outfits/src-{a.key}/outfit.json', f'Outfits/src-{a.key}/concept.png',
              f'Outfits/tee-kits/{a.key}/raw', f'Outfits/legging-kits/{a.key}/raw']
     for p in paths:
