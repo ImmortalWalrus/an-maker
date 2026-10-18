@@ -1,0 +1,2 @@
+# no line-ending rewriting: files are byte-identical on every machine (the publish compares bytes)
+* -text

@@ -173,16 +173,20 @@ def cmd_update(a):
         if not url:
             stop('tools/repo.txt is missing - ask the owner for the repo address')
         say(f'linking this folder to {url} (one time; GitHub may open a browser to sign in)')
-        git('init', '-q'); git('remote', 'add', 'origin', url)
+        git('init', '-q'); git('config', 'core.autocrlf', 'false'); git('remote', 'add', 'origin', url)
         git('fetch', '-q', 'origin', 'main')
-        git('reset', '-q', 'origin/main')                        # history from GitHub, your files untouched
+        # the zip may be older than GitHub: take GitHub's version of every pipeline file. Files that are only yours
+        # (new garments, .anmaker settings) are not tracked yet, so they stay as they are.
+        git('reset', '-q', '--hard', 'origin/main')
+        git('branch', '-q', '--set-upstream-to=origin/main', 'main', check=False)
+        say('linked')
+        return
     before = git('rev-parse', 'HEAD', check=False).stdout.strip()
     dirty = git('status', '--porcelain', '--untracked-files=no').stdout.strip()
-    if dirty:
+    if dirty:                                                   # teammates don't edit pipeline files: set edits aside
         git('stash', '-q')
+        say('local edits to pipeline files were set aside (git stash) so the update could go in')
     r = git('pull', '-q', '--rebase', 'origin', 'main', check=False)
-    if dirty:
-        git('stash', 'pop', '-q', check=False)
     if r.returncode:
         stop('could not pull the update: ' + r.stdout[-500:])
     after = git('rev-parse', 'HEAD').stdout.strip()
