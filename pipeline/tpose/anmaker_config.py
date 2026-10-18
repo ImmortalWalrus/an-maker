@@ -28,6 +28,7 @@ def find_blender():
         for base in (os.environ.get('ProgramFiles', r'C:\Program Files'), os.environ.get('ProgramFiles(x86)', '')):
             cand += glob.glob(os.path.join(base, 'Blender Foundation', 'Blender *', 'blender.exe'))
         cand += glob.glob(os.path.expandvars(r'%LOCALAPPDATA%\Programs\Blender Foundation\Blender *\blender.exe'))
+        cand += glob.glob(os.path.expanduser(r'~\an-maker-tools\blender-5.*-windows-x64\blender.exe'))  # setup's portable copy
     elif sys.platform == 'darwin':
         cand += glob.glob('/Applications/Blender*.app/Contents/MacOS/Blender')
         cand += glob.glob(os.path.expanduser('~/Applications/Blender*.app/Contents/MacOS/Blender'))

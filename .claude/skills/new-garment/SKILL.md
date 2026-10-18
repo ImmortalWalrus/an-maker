@@ -7,7 +7,8 @@ description: Make a new AN Maker garment (a fitted tee/tank/crop top, leggings/s
 
 Read `docs/garment-agent.md` in full and follow it, step by step:
 
-1. Step 0: `python pipeline/garment.py update`, then first-time setup if `.anmaker/config.json` is missing.
+1. Step 0: find the installed copy (`%USERPROFILE%\an-maker`), or unpack a dropped zip and run first-time setup
+   (it installs itself); otherwise `python pipeline/garment.py update`.
 2. Check the request is allowed (tops, bottoms and outerwear only), then pick the track yourself.
 3. Write the brief: a parody brand, plain garment, logo baked afterwards.
 4. Run the command and handle stops, then explain the inspection notes.

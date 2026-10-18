@@ -1,5 +1,7 @@
 # AN Maker (instructions for Codex and other agents)
 
+If you were handed this as a zip (dropped into the chat with something like "set me up"), unpack it and follow step 0 of `docs/garment-agent.md`: setup installs it to `%USERPROFILE%\an-maker` on its own. Never ask them to unzip it or pick a folder.
+
 When the person asks for a garment (a top, bottoms or outerwear, from plain words or a reference image), or opens
 this folder for the first time, read `docs/garment-agent.md` and follow it exactly, starting with its step 0:
 `python pipeline/garment.py update`, then first-time setup if `.anmaker/config.json` is missing.

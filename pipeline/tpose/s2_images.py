@@ -16,9 +16,13 @@ CANVAS = 'the same 1024x1536 portrait canvas'
 
 
 def codex(cwd: Path, prompt: str, images, expect: Path, log: Path, tries=2):
-    """Run one non-interactive Codex session; succeed only if `expect` was written."""
+    """Run one non-interactive Codex session; succeed only if `expect` was written. With a paid image provider
+    (imagegen.py: AssetHub or Higgsfield, for machines without Codex) the same job is done by that provider."""
     if expect.exists():
         return True
+    import imagegen
+    if imagegen.backend() != 'codex':
+        return imagegen.job(cwd, prompt, images, expect, log)
     for attempt in range(1, tries + 1):
         cmd = ['codex', 'exec', '--skip-git-repo-check', '--sandbox', 'workspace-write']
         for im in images:

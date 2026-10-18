@@ -686,12 +686,17 @@ def main():
                          f'(z {r["mask_overreach_z_m"]}) - see-through holes')
             defects += [(name, p, d) for p, d in found]
         print(f'[inspect] overreach {name}: {len(found)} of {len(samples)} masked samples visible', flush=True)
+    # the MRI: body ring and garment ring in slices at the collar, sleeves, cuffs, waistband/hem and legs (mri.py)
+    import mri as MR
+    mri_res, mri_fails = MR.run_look(d, arm, [o for o in pieces if o not in hidden_entirely], body, body_co, body_bone,
+                                     body_vis)
+    fails += mri_fails
     for m in masks:
         m.show_viewport = True
     bpy.context.view_layer.update()
     render_defects(out, shown, defects + poke_defects + layer_defects)
     rep = {'limits': LIMITS, 'pass': not fails, 'fails': fails, 'pieces': results, 'layer_spacing': rep_spacing, 'shells': shell_rep,
-           'warnings': warnings}
+           'warnings': warnings, 'mri': mri_res}
     (out / 'inspect.json').write_text(json.dumps(rep, indent=2), encoding='utf-8')
     print('[inspect] PASS' if not fails else '[inspect] FAIL\n  ' + '\n  '.join(fails), flush=True)
 

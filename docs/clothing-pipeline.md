@@ -268,3 +268,16 @@ need fewer.
 - The customizer's material handling for body-made pieces (`loadPiece` in `index.html`, owned by the animation session):
   - `_hem_band` and `_shell` pieces keep their metal channel.
   - `_shell` bottoms get a soft stretch-knit sheen and no denim twill.
+
+## MRI scan (every garment)
+
+`pipeline/tpose/mri.py`, run inside `inspect_look.py` for every look. At stations along each sleeve and leg (planes
+across the bone through the skin's centre), at the collar (across the neck, just under the lowest collar edge) and at
+the waistband / hem and waist (horizontal), it cuts the body and the garment. Rays from the limb's centre give, per
+direction, the skin radius and the garment's inner and outer walls. A slice is a ring only where the garment meets
+>= 90 % of the rays. Fails: on collar / sleeve / cuff / leg rings, touching (inner wall at or inside the skin) on more
+than 8 % of the rays where that skin shows; on waistband / hem rings (a band grips by design), skin outside every
+wall on more than 5 %. Hidden skin (masked under the look) never fails a slice: the MONCHILL puffer's forearm in its
+cuff lining is the reference case. Each piece gets `08_inspect/mri_<key>.png` (body orange, garment teal). The gate
+treats an MRI fail as structural and regenerates.
+

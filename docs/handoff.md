@@ -47,10 +47,12 @@ the live page, so the frozen copy never reaches the site. Refresh it only if pre
 ## The message to send
 
 > Hey Rick! Here's the AN Maker garment maker.
-> 1. Accept the GitHub invite, then open https://github.com/ImmortalWalrus/an-maker → green **Code** button → **Download ZIP**.
-> 2. Unzip it to a short path like `C:\an-maker`.
-> 3. Open that folder in Claude Code (or Codex) and type **set me up**. It asks you 4 quick questions and installs
->    what's missing. Sign in to your own accounts when it asks, and never paste passwords into the chat.
+> 1. Accept the GitHub invite, then open https://github.com/ImmortalWalrus/an-maker → green **Code** button →
+>    **Download ZIP**.
+> 2. Open Claude Code (or Codex) and switch the mode at the bottom left to **Bypass permissions** (Codex: **Full
+>    access**). The README has a picture.
+> 3. Drag the zip into the chat and type **set me up**. It asks a few quick questions and installs everything itself.
+>    Sign in to your own accounts when it asks, and never paste passwords into the chat.
 > 4. Then just ask for clothes: *"make me a Moncler-style puffer"*, *"pink camo leggings"*, or drop in a picture.
 >    Tops, bottoms and jackets only for now.
 > It updates itself every time you use it.

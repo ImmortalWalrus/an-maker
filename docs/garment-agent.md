@@ -9,12 +9,29 @@ Talk to the teammate in plain, friendly words: no file paths, flags or jargon un
 
 ## 0. Every time, first
 
-1. `python pipeline/garment.py update`, to get the newest pipeline. If it says "not linked", that's fine on the
-   very first run: setup links it.
-2. If `.anmaker/config.json` does not exist, run **First-time setup** (below) before anything else.
-3. Re-read this file after an update, because it may have changed.
+1. **Find the installed copy.** It lives in `%USERPROFILE%\an-maker` (e.g. `C:\Users\Rick\an-maker`). If
+   `%USERPROFILE%\an-maker\.anmaker\config.json` exists, work there: run every command from that folder (if you can
+   switch this session's folder to it, do), even if you were also handed a zip.
+2. **Handed the zip** (they dropped `an-maker-main.zip` into the chat and said something like "set me up") and it's
+   not installed yet: unpack it, then run **First-time setup** from the unpacked copy. Setup installs it to
+   `%USERPROFILE%\an-maker` by itself and carries on there. Don't ask them where to put it.
+
+   ```
+   Expand-Archive -Force "<the zip>" "$env:TEMP\anm"
+   python "$env:TEMP\anm\an-maker-main\pipeline\garment.py" setup ...      (answers from First-time setup)
+   ```
+
+   If the zip's top folder has another name, use the folder that holds `pipeline\garment.py`.
+3. Otherwise: `python pipeline/garment.py update`, to get the newest pipeline. Re-read this file after an update,
+   because it may have changed.
 
 ## First-time setup (ask, then do)
+
+They should not have to install, download or configure anything themselves: you do it.
+
+**Permissions first.** Setup runs many commands. If you are being stopped to ask for approval on each one, tell them
+once: "Switch me to **Bypass permissions** (Claude Code: the mode menu at the bottom left of the chat box) or **Full
+access** (Codex), then say *go*." The README shows where.
 
 Greet them, then ask these questions one at a time. Explain each in one line, and suggest a default.
 
@@ -23,31 +40,49 @@ Greet them, then ask these questions one at a time. Explain each in one line, an
    Which account will you use?
    - **AssetHub**, with your own API key (recommended, 25 credits per try);
    - **Higgsfield**, with your own account (about 18 credits per try);
-   - **None for now**: only fitted tees, tanks, crops, leggings and shorts, which are free apart from image generation.
+   - **None for now**: only fitted tees, tanks, crops, leggings and shorts.
 3. **Spending limit** per garment, in credits (default 50, which allows 2 tries).
 4. **Publishing**: has the owner given you edit access to the AN Maker page? (yes / no / not sure; "no" is fine,
    the owner publishes for you.)
+5. **Image generation**, only if needed. Every garment starts as drawings. Work it out yourself first:
+   - you are Codex, or `codex login status` says signed in → Codex draws, free with their ChatGPT plan
+     (`--images auto` picks it; don't ask);
+   - otherwise ask: "Do you have a ChatGPT plan (Plus or Pro)? Then drawings are free through Codex: I'll install it
+     and you sign in once. If not, drawings are paid on your 3D account, about 10 credits each (a fitted piece needs
+     1-3, a 3D garment about 8)." → `--images codex`, or `--images assethub|higgsfield`.
 
 Then:
 
-- Run `python pipeline/garment.py setup --name "<name>" --mesh assethub|higgsfield|none --max-credits N --publish yes|no`
-  (teammate mode is the default: it locks the site and pipeline files for you on this machine).
-  This also runs `doctor`.
-- Fix every `!!` line with the teammate. Install missing tools only with their OK, one at a time:
-  - Blender: `winget install BlenderFoundation.Blender`. Blender 5.x is required; afterwards run setup again so the
-    pipeline finds it.
-  - Git: `winget install Git.Git`.
-  - Python packages: `python -m pip install -r requirements.txt`.
-  - Codex CLI: `npm install -g @openai/codex` (needs Node, `winget install OpenJS.NodeJS.LTS`).
-- Sign-ins are theirs: `codex login` and `assethub auth login` (or `higgsfield auth login`) open a browser or ask in
-  their own terminal. **Never ask them to paste a password or API key into the chat**, and never write one into a file.
-- Run `python pipeline/garment.py update` to link to GitHub. Git may open a browser to sign in. The owner must have
-  added their GitHub account to the repo.
+- **Python** (needed to run anything): if `python --version` fails or opens the Microsoft Store, install it yourself:
+  `winget install -e --id Python.Python.3.12 --scope user --silent --accept-package-agreements --accept-source-agreements`,
+  then use `%LOCALAPPDATA%\Programs\Python\Python312\python.exe` in place of `python` until a new terminal picks it up.
+- Run `python pipeline/garment.py setup --name "<name>" --mesh assethub|higgsfield|none --max-credits N --publish yes|no --images auto|codex|assethub|higgsfield`.
+  It does every mechanical step in one go (tell them it takes a few minutes and downloads about 0.5 GB):
+  - installs the copy to `%USERPROFILE%\an-maker` (when run from an unpacked zip) and continues there;
+  - **installs whatever is missing, by itself**: the Python packages, Blender 5.2 LTS (portable, from blender.org, no
+    admin rights), Git, Node.js and the command-line tools for their image and 3D accounts. Windows may ask once to
+    allow Git or Node.js: tell them to click **Yes**;
+  - saves the answers and locks the site and pipeline files for you on this machine (teammate mode, the default);
+  - adds a Claude Code skill and a Codex note, so later chats find the garment maker from any folder;
+  - links to GitHub for automatic updates (Git may open a browser to sign in; the owner must have added their GitHub
+    account to the repo);
+  - runs `doctor`.
+
+  From here on, run every command from `%USERPROFILE%\an-maker`.
+- If a `!!` line is about a tool, run setup again (it retries the install). If it still fails, say what failed in
+  plain words and try the fix yourself.
+- **Sign-ins are theirs** (the only thing they do by hand), one at a time, each in their own browser or terminal:
+  - Codex: `codex login` opens the ChatGPT sign-in in their browser (skip it inside Codex: already signed in);
+  - AssetHub: they make an API key on the AssetHub website, open **PowerShell** themselves and run
+    `assethub auth login --api-key-stdin`, then paste the key there and press Enter;
+  - Higgsfield: `higgsfield auth login` opens their browser;
+  - GitHub: the browser window Git opens.
+  **Never ask them to paste a password or API key into the chat**, and never write one into a file.
 - Run `python pipeline/garment.py doctor` until it says ALL GOOD.
 - Run `python pipeline/garment.py export` once. It builds the local preview files (about 10-15 minutes the first time;
   tell them it's a good coffee break).
 - Then tell them, in one short message: "You're all set. Just tell me what to make, e.g. *make me a Moncler-style
-  puffer* or *pink camo leggings*. Add a picture if you have one for inspiration."
+  puffer* or *pink camo leggings*. Add a picture if you have one for inspiration. Next time, just ask in any new chat."
 
 ## 1. What can be made (and what can't yet)
 
@@ -117,6 +152,9 @@ dresses, jumpsuits, skirts, makeup, face or expression changes, body changes, an
   - 2D checks failed: improve the description from the REDO reasons and run again (free);
   - out of credits or over the limit: tell them, and ask before going over;
   - a tool or sign-in problem: run `doctor`.
+- **The MRI scan** runs in every inspection: slices at the collar, sleeves, cuffs, waistband/hem and legs, with the
+  body ring and the garment ring drawn in two colours (`Outfits/_looks/<look>/08_inspect/mri_<key>.png`). Look at it
+  yourself for every new garment; a red tile is a fail. Show it to them if they ask how it fits.
 - **If it finishes with inspection notes**: explain each note in plain words and show it in the preview. Notes like
   "layer spacing too small at <10%" or "runs through the sleeve lining" deep inside padding are known, accepted
   residuals (see `docs/clothing-pipeline.md` B4). A visible defect means the garment is not done: offer one more try
@@ -135,11 +173,13 @@ dresses, jumpsuits, skirts, makeup, face or expression changes, body changes, an
 
    | Change | How | Cost |
    |---|---|---|
-   | Fitted tee/tank/leggings/shorts: colours, print, graphic | `shell-top/shell-bottom --replace` with a new `--theme` | image generation only, about 5-10 min |
+   | Fitted tee/tank/leggings/shorts: colours, print, graphic | `shell-top/shell-bottom --replace` with a new `--theme` | image generation only, about 5-10 min (free with Codex; paid images: about 10 credits for leggings, 30 for a top) |
    | Fitted piece: sleeve length, crop, leg length | same, new cut values | image generation only |
    | 3D garment: logo or badge (art, name, colour, which sleeve) | `emblem` + `badge_art.py` + `badge --key K --art ... --place ...` | image generation only, about 5 min, no 3D credits |
    | 3D garment: shape, length, fit, colour, material, pockets or any other look change | `generated --replace` with the new description (`--draw-only` first to show the new drawings for free) | a new 3D generation: about 25 credits per try (AssetHub), usually 1-2 tries, about 30 min |
 
+   With paid images (`images` in `.anmaker/config.json` is not `codex`), every "image generation only" row costs
+   about 10 credits per image: say so. Drawings for a 3D change add about 80.
    For a 3D change, say plainly: "That needs a new 3D model: about 25 credits a try, up to N (your limit X). Go ahead?"
    Wait for yes.
 5. When they say it's good: `python pipeline/garment.py save --key K` (pushes it to GitHub for the owner).

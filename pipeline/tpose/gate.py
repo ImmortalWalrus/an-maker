@@ -20,7 +20,7 @@ STRUCTURAL = ('runs through the sleeve lining', 'off-centre in the sleeve hole',
               'skin points poke through', 'see-through holes',
               'pokes out of it at the waist/torso', 'layer spacing over', 'floats over', 'floats off the body',
               'layer order wrong', 'does not come out through its opening',
-              'thin flap past the', 'sleeve opening too wide')
+              'thin flap past the', 'sleeve opening too wide', 'MRI ')
 
 
 def run(cmd):
