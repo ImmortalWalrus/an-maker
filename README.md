@@ -36,13 +36,13 @@ and put live on AN Maker when you say so.</p>
 ## What "set me up" does
 
 ```mermaid
-flowchart LR
-    Z["📦 zip dropped in chat<br/><i>set me up</i>"] --> Q["💬 5 quick questions"]
-    Q --> I["🛠️ installs it all<br/>to your user folder"]
-    I --> S["🔑 you sign in<br/>in your browser"]
-    S --> L["🔗 linked to GitHub<br/>auto-updates"]
-    L --> P["🖥️ builds your<br/>local preview"]
-    P --> R(["✅ ready: just ask"])
+flowchart TD
+    Z["📦 zip dropped in the chat: <b>set me up</b>"] --> Q["💬 5 quick questions"]
+    Q --> I["🛠️ installs itself and every tool it needs"]
+    I --> S["🔑 you sign in, in your own browser"]
+    S --> L["🔗 linked to GitHub for automatic updates"]
+    L --> P["🖥️ builds your local preview"]
+    P --> R(["✅ ready: just ask for clothes"])
 ```
 
 **The questions** (one at a time, each with a sensible default):
@@ -87,19 +87,17 @@ You never pick a pipeline, a file or a number. The assistant picks the right tra
 ```mermaid
 flowchart TD
     A["💬 your request"] --> B{"skin-tight or loose?"}
-    B -- "tee · tank · crop top" --> T["🎨 fabric prints drawn<br/>shirt built from the body itself"]
-    B -- "leggings · capris · bike shorts" --> T
+    B -- "tee · tank · crop top<br/>leggings · capris · shorts" --> T["🎨 fabric prints drawn<br/>garment built from the body itself"]
     B -- "hoodie · puffer · jacket<br/>sweats · cargos · jeans" --> D["✏️ drawn on the avatar<br/>front · left · back · right"]
-    D --> C2["🔍 2D checks<br/>cuffs · hems · cover · sleeves<br/>(free redraws)"]
-    C2 --> M["🧊 3D model<br/>(about 25 credits a try)"]
+    D --> C2["🔍 2D checks: cuffs, hems, cover<br/>(free redraws)"]
+    C2 --> M["🧊 3D model, about 25 credits a try"]
     M --> F["📐 aligned to all 4 drawings<br/>fitted to the skeleton"]
-    T --> MRI["🩻 MRI scan + inspection<br/>alone and with other clothes"]
+    T --> MRI["🩻 MRI scan + inspection<br/>alone and with other clothes<br/>(a fault rebuilds it automatically)"]
     F --> MRI
-    MRI -- "structural fault" --> M
     MRI --> V["👀 preview in AN Maker"]
     V --> ASK{{"Is it good to publish,<br/>or would you like any changes?"}}
-    ASK -- "changes" --> X["💸 tells you the cost first"] --> B
     ASK -- "publish it" --> LIVE["🚀 live on AN Maker"]
+    ASK -- "changes" --> X["💸 tells you the cost first, then rebuilds"]
 ```
 
 Brands are always **parodies**: Moncler becomes MONCHILL, Champion becomes CHAMPIGNON, Lululemon becomes lululemur.
