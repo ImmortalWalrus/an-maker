@@ -232,15 +232,15 @@ def combos(slot, spec):
 def cmd_generated(a):
     check_key(a.key); c = cfg()
     mesh = c.get('mesh', 'none')
-    if mesh == 'none':
+    if mesh == 'none' and not a.draw_only:
         stop('3D garments need a mesh provider (setup --mesh assethub|higgsfield). Fitted pieces: shell-top / shell-bottom.')
     env = {'MESH_PROVIDER': mesh}
     os.environ.update(env)
     import s4_meshes as S4
     S4.PROVIDER = mesh
-    cost, have = S4.cost_per_mesh() * a.tries, S4.credits()
+    cost, have = S4.cost_per_mesh() * a.tries, (None if a.draw_only else S4.credits())
     say(f'budget: up to {a.tries} mesh tries x {S4.cost_per_mesh()} = {cost} credits ({mesh}, {have} available)')
-    if cost > c.get('max_credits', 50) and not a.allow:
+    if cost > c.get('max_credits', 50) and not a.allow and not a.draw_only:
         stop(f'that is over your limit of {c.get("max_credits")} credits per garment - lower --tries or pass --allow')
     if have is not None and have < S4.cost_per_mesh():
         stop(f'only {have} {mesh} credits left - top up first')
@@ -272,6 +272,10 @@ def cmd_generated(a):
     if not chk.get('pass'):
         stop(f'the drawings did not pass the 2D checks after the free redraws: {chk.get("failing_views")} - '
              'adjust the description (see the REDO reasons above) and run again')
+    if a.draw_only:
+        say(f'drawings done and checked (free): {(out / "03_garments").relative_to(ROOT)}. Run again without --draw-only '
+            'to build it in 3D (it reuses these drawings).')
+        return
     spec = f'{out.name}:{a.key}'
     gate_look, pieces, extra = combos(a.slot, spec)
     gate_args = ['--outfit', out, '--key', a.key, '--base', 'Xander', '--look', f'{gate_look}-{a.key}', '--pieces', *pieces]
@@ -421,6 +425,7 @@ def main():
     s.add_argument('--description', required=True); s.add_argument('--ref', default='')
     s.add_argument('--loft-mm', type=float, default=0); s.add_argument('--tries', type=int, default=2)
     s.add_argument('--allow', action='store_true', help='allow spending over max_credits')
+    s.add_argument('--draw-only', action='store_true', help='stop after the (free) drawings and their checks')
     s.add_argument('--badge-art', default=''); s.add_argument('--badge-place', default='sleeve-left',
                                                                choices=['logo', 'sleeve-left', 'sleeve-right'])
     s = sub.add_parser('emblem')

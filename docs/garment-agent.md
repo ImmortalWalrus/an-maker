@@ -107,7 +107,7 @@ dresses, jumpsuits, skirts, makeup, face or expression changes, body changes, an
 - **Fitted**: `python pipeline/garment.py shell-top|shell-bottom --key K --label "L" --theme "..." [cut flags]`.
   Image generation only, a few minutes.
 - **Generated**: `python pipeline/garment.py generated --key K --label "L" --slot S --description "..." [--ref img]
-  [--loft-mm N] [--badge-art png --badge-place sleeve-left]`. It first prints the credit budget; within their limit, just
+  [--loft-mm N] [--badge-art png --badge-place sleeve-left]`. Add `--draw-only` to stop after the free drawings, to show the design before spending credits (then run the same command without it; the drawings are reused). It first prints the credit budget; within their limit, just
   go. It takes 20-40 minutes: tell them so, and give short progress notes. It draws the garment over the avatar, checks
   the drawings (free redraws), generates the 3D mesh, fits it, and inspects it alone and with other clothes. Any
   structural fault regenerates automatically, up to `--tries`.
@@ -123,7 +123,7 @@ dresses, jumpsuits, skirts, makeup, face or expression changes, body changes, an
 
 ## 5. Show, save, publish
 
-1. `python pipeline/garment.py export` rebuilds the wardrobe files and lists what changed.
+1. `python pipeline/garment.py update`, then `python pipeline/garment.py export`. The update brings in garments the other person saved meanwhile, so the export (which rebuilds the whole wardrobe) never drops theirs. Export lists what changed.
 2. Preview:
    - in the Claude desktop app, open http://localhost:8765 in the browser pane after starting
      `python pipeline/garment.py preview` in the background;
